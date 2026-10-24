@@ -1,0 +1,23 @@
+# Architecture
+
+| Diagram | File |
+|---|---|
+| System context, containers | `01-c4-context-and-containers.drawio` |
+| Components, module anatomy | `02-c4-components-api.drawio` |
+| Failure-to-incident sequence, state machines | `03-failure-to-incident.drawio` |
+| Entity relationships | `04-erd.drawio` |
+
+## Decisions
+
+| Topic | Decision |
+|---|---|
+| Module communication | Checks publishes `TargetWentDown` / `TargetRecovered` as Spring Modulith events. Events are persisted with the check result and redelivered on failure. |
+| Data ownership | One PostgreSQL schema per module. No foreign keys across modules; references are UUIDs. |
+| Alerting | Prometheus and Alertmanager evaluate and route alerts. The notifications module receives them by webhook, together with incident events, and delivers to channels. |
+| Recovery | A DOWN target recovers after 2 consecutive successful checks. |
+| Domain model | Plain Java, no framework annotations. Mapping stays thin, and existing libraries are preferred over custom code. |
+| Status columns | Native PostgreSQL `ENUM` types. |
+| Scheduling | ShedLock with the JDBC provider, so checks run on one instance at a time. |
+| Duplicate incidents | Prevented by a partial unique index: `UNIQUE (target_id) WHERE status <> 'RESOLVED'`. |
+| Retention | Raw check results for 30 days, daily summaries for 13 months, incidents indefinitely. A nightly job aggregates the summaries and deletes expired rows. |
+| Target removal | Auto-resolves the open incident with resolution `TARGET_REMOVED`. Check history expires through retention. |
