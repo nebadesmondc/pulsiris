@@ -1,5 +1,6 @@
 package dev.pulsiris.checks.domain;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -23,6 +24,13 @@ public record HealthState(UUID targetId, HealthStatus status, int consecutiveFai
 
 	public static HealthState unknown(UUID targetId) {
 		return new HealthState(targetId, HealthStatus.UNKNOWN, 0, 0, null, null, null);
+	}
+
+	/**
+	 * A target is due when it has never been checked or its interval has passed since the last check.
+	 */
+	public boolean isDue(Duration interval, Instant now) {
+		return lastCheckedAt == null || !now.isBefore(lastCheckedAt.plus(interval));
 	}
 
 	/**

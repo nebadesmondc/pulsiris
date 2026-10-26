@@ -38,6 +38,10 @@ pulsiris:
       min-timeout: 500ms
       max-timeout: 30s
       max-threshold: 10
+  checks:
+    tick: 5s
+    max-concurrent-probes: 50
+    scheduler-enabled: true
 
 management:
   endpoints:

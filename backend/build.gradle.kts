@@ -20,6 +20,7 @@ repositories {
 
 extra["springModulithVersion"] = "2.1.1"
 val mapstructVersion = "1.6.3"
+val shedlockVersion = "7.10.1"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -31,6 +32,8 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
 	implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+	implementation("net.javacrumbs.shedlock:shedlock-spring:$shedlockVersion")
+	implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
 	implementation("org.mapstruct:mapstruct:$mapstructVersion")
 	annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
