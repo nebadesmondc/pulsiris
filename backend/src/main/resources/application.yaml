@@ -38,6 +38,15 @@ pulsiris:
       min-timeout: 500ms
       max-timeout: 30s
       max-threshold: 10
+  checks:
+    tick: 5s
+    max-concurrent-probes: 50
+    scheduler-enabled: true
+    retention:
+      raw-results: 30d
+      summaries: 395d
+      cron: "0 30 2 * * *"
+      batch-size: 10000
 
 management:
   endpoints:
