@@ -25,8 +25,15 @@ interface ChecksEntityMapper {
 	@Mapping(target = "latencyMs", source = "latency")
 	CheckResultEntity toEntity(CheckResult result);
 
+	@Mapping(target = "latency", source = "latencyMs")
+	CheckResult toDomain(CheckResultEntity entity);
+
 	default int toMillis(Duration duration) {
 		return Math.toIntExact(duration.toMillis());
+	}
+
+	default Duration ofMillis(int millis) {
+		return Duration.ofMillis(millis);
 	}
 
 }

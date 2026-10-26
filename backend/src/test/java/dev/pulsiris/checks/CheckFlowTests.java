@@ -6,21 +6,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.UUID;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.pulsiris.IntegrationTest;
 import dev.pulsiris.MutableClock;
+import dev.pulsiris.TestClockConfiguration;
 import dev.pulsiris.checks.application.CheckRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.event.ApplicationEvents;
@@ -33,7 +30,7 @@ import org.springframework.test.web.servlet.assertj.MockMvcTester;
  */
 @IntegrationTest
 @RecordApplicationEvents
-@Import(CheckFlowTests.ClockConfiguration.class)
+@Import(TestClockConfiguration.class)
 class CheckFlowTests {
 
 	@RegisterExtension
@@ -143,17 +140,6 @@ class CheckFlowTests {
 	private int stateCount(UUID id) {
 		return jdbc.queryForObject("select count(*) from checks.target_health_state where target_id = ?",
 				Integer.class, id);
-	}
-
-	@TestConfiguration(proxyBeanMethods = false)
-	static class ClockConfiguration {
-
-		@Bean
-		@Primary
-		MutableClock testClock() {
-			return new MutableClock(Instant.parse("2026-11-02T09:00:00Z"));
-		}
-
 	}
 
 }
