@@ -1,5 +1,6 @@
 package dev.pulsiris.registry.application;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,8 @@ public interface TargetRepository {
 	Optional<Target> findById(UUID id);
 
 	Page<Target> findAll(TargetFilter filter, Pageable pageable);
+
+	List<Target> findAllEnabled();
 
 	boolean existsByName(String name);
 

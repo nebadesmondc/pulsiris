@@ -1,5 +1,6 @@
 package dev.pulsiris.registry.adapter.persistence;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,6 +61,11 @@ class JpaTargetRepository implements TargetRepository {
 	public Page<Target> findAll(TargetFilter filter, Pageable pageable) {
 		return jpa.findAll(Specification.where(TargetSpecifications.matching(filter)), sortNamesIgnoringCase(pageable))
 			.map(mapper::toDomain);
+	}
+
+	@Override
+	public List<Target> findAllEnabled() {
+		return jpa.findAll(TargetSpecifications.enabledIs(true)).stream().map(mapper::toDomain).toList();
 	}
 
 	private static Pageable sortNamesIgnoringCase(Pageable pageable) {
