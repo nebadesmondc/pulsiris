@@ -11,5 +11,5 @@ import java.util.UUID;
  * @param expectedStatus exact status that counts as healthy, or {@code null} for any 2xx
  */
 public record TargetSnapshot(UUID id, String name, URI endpointUrl, String httpMethod, Integer expectedStatus,
-		Duration interval, Duration timeout, int failureThreshold, int recoveryThreshold) {
+		Duration interval, Duration timeout, int failureThreshold, int recoveryThreshold, boolean enabled) {
 }

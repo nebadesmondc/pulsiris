@@ -1,6 +1,8 @@
 package dev.pulsiris.registry.application;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import dev.pulsiris.registry.TargetLookup;
 import dev.pulsiris.registry.TargetSnapshot;
@@ -24,10 +26,15 @@ class RegistryTargetLookup implements TargetLookup {
 		return repository.findAllEnabled().stream().map(RegistryTargetLookup::snapshot).toList();
 	}
 
+	@Override
+	public Optional<TargetSnapshot> findById(UUID id) {
+		return repository.findById(id).map(RegistryTargetLookup::snapshot);
+	}
+
 	private static TargetSnapshot snapshot(Target target) {
 		return new TargetSnapshot(target.id(), target.name(), target.endpointUrl(), target.httpMethod().name(),
 				target.expectedStatus(), target.interval(), target.timeout(), target.failureThreshold(),
-				target.recoveryThreshold());
+				target.recoveryThreshold(), target.enabled());
 	}
 
 }
