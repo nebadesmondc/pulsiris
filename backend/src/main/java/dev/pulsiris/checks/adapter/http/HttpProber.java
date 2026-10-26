@@ -71,13 +71,26 @@ class HttpProber implements Prober {
 	}
 
 	private static String describe(IOException ex) {
-		if (ex instanceof SSLException || ex.getCause() instanceof SSLException) {
+		if (hasCause(ex, SSLException.class)) {
 			return truncate("TLS error: " + rootMessage(ex));
 		}
+		// The JDK wraps the real reason in one or more ConnectExceptions, so search the whole chain.
+		if (hasCause(ex, UnresolvedAddressException.class)) {
+			return "Unknown host";
+		}
 		if (ex instanceof ConnectException) {
-			return ex.getCause() instanceof UnresolvedAddressException ? "Unknown host" : "Connection refused";
+			return "Connection refused";
 		}
 		return truncate("I/O error: " + rootMessage(ex));
+	}
+
+	private static boolean hasCause(Throwable ex, Class<? extends Throwable> type) {
+		for (Throwable cause = ex; cause != null; cause = cause.getCause()) {
+			if (type.isInstance(cause)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static String rootMessage(Throwable ex) {

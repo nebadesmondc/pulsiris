@@ -114,6 +114,15 @@ class HttpProberTest {
 	}
 
 	@Test
+	void unresolvableHostIsReportedAsUnknownHost() {
+		// .invalid is reserved (RFC 6761) and never resolves.
+		CheckResult result = prober.probe(probe(URI.create("http://pulsiris-test.invalid/health")));
+
+		assertThat(result.outcome()).isEqualTo(CheckOutcome.ERROR);
+		assertThat(result.errorMessage()).isEqualTo("Unknown host");
+	}
+
+	@Test
 	void untrustedCertificateIsATlsError() {
 		server.stubFor(get("/health").willReturn(aResponse().withStatus(200)));
 
