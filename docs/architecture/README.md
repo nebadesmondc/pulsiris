@@ -26,4 +26,6 @@
 | Scheduling | ShedLock with the JDBC provider, so checks run on one instance at a time. |
 | Duplicate incidents | Prevented by a partial unique index: `UNIQUE (target_id) WHERE status <> 'RESOLVED'`. |
 | Retention | Raw check results for 30 days, daily summaries for 13 months, incidents indefinitely. A nightly job aggregates the summaries and deletes expired rows. |
-| Target removal | Auto-resolves the open incident with resolution `TARGET_REMOVED`. Check history expires through retention. |
+| Target removal | Auto-resolves the open incident with resolution `TARGET_REMOVED`. The target's health state and check history are deleted. |
+| Check runs | Every 5 s, due targets are probed in parallel on virtual threads, capped at 50 at a time. Each result is recorded in its own transaction. |
+| Probing | JDK `HttpClient`: a timeout per target, redirects followed, TLS certificates verified, response body discarded. Outcomes are `SUCCESS`, `FAILURE`, `TIMEOUT` or `ERROR`. |
