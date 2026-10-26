@@ -12,6 +12,32 @@ spring:
   modulith:
     runtime:
       flyway-enabled: true
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+        serialization-mode: via-dto
+
+springdoc:
+  paths-to-match: /api/**
+  override-with-generic-response: false
+  swagger-ui:
+    tags-sorter: alpha
+
+pulsiris:
+  targets:
+    defaults:
+      http-method: GET
+      interval: 60s
+      timeout: 5s
+      failure-threshold: 3
+      recovery-threshold: 2
+    limits:
+      min-interval: 10s
+      max-interval: 1h
+      min-timeout: 500ms
+      max-timeout: 30s
+      max-threshold: 10
 
 management:
   endpoints:
