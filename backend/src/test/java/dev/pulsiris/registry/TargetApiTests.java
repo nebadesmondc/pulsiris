@@ -4,13 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
 
-import dev.pulsiris.TestcontainersConfiguration;
+import dev.pulsiris.IntegrationTest;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.event.ApplicationEvents;
@@ -18,10 +15,8 @@ import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.assertj.MvcTestResult;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@IntegrationTest
 @RecordApplicationEvents
-@Import(TestcontainersConfiguration.class)
 class TargetApiTests {
 
 	@Autowired
