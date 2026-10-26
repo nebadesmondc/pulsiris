@@ -19,6 +19,7 @@ repositories {
 }
 
 extra["springModulithVersion"] = "2.1.1"
+val mapstructVersion = "1.6.3"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -28,6 +29,11 @@ dependencies {
 	implementation("org.flywaydb:flyway-database-postgresql")
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
+	implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+	implementation("org.mapstruct:mapstruct:$mapstructVersion")
+	annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 	runtimeOnly("org.postgresql:postgresql")
 	runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
 	runtimeOnly("org.springframework.modulith:spring-modulith-runtime")
@@ -46,6 +52,10 @@ dependencyManagement {
 	imports {
 		mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
 	}
+}
+
+springBoot {
+	buildInfo()
 }
 
 tasks.withType<Test> {
