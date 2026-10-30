@@ -1,7 +1,10 @@
 package dev.pulsiris.incidents.application;
 
+import java.time.Clock;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.function.Function;
 
 import dev.pulsiris.incidents.domain.Incident;
 import org.slf4j.Logger;
@@ -11,8 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Opens and resolves incidents as targets go down, recover or are removed. Events are delivered
- * at least once, so every method is safe to call again with the same input.
+ * Opens and resolves incidents as targets go down, recover or are removed, and applies the
+ * actions people take. Events are delivered at least once, so the event methods are safe to call
+ * again with the same input.
  */
 @Service
 public class IncidentService {
@@ -21,8 +25,11 @@ public class IncidentService {
 
 	private final IncidentRepository incidents;
 
-	IncidentService(IncidentRepository incidents) {
+	private final Clock clock;
+
+	IncidentService(IncidentRepository incidents, Clock clock) {
 		this.incidents = incidents;
+		this.clock = clock;
 	}
 
 	@Transactional
@@ -60,6 +67,35 @@ public class IncidentService {
 			incidents.save(incident.targetRemoved(removedAt));
 			log.info("Resolved incident {}: target '{}' was removed", incident.id(), incident.targetName());
 		});
+	}
+
+	@Transactional
+	public void acknowledge(UUID id, String actor) {
+		apply(id, incident -> incident.acknowledge(actor, now()));
+	}
+
+	@Transactional
+	public void resolve(UUID id, String actor, String reason) {
+		Incident resolved = apply(id, incident -> incident.resolve(actor, reason, now()));
+		// The target may still be down; no new incident opens until it recovers and fails again.
+		log.warn("Incident {} for target '{}' resolved manually by {}", id, resolved.targetName(), actor);
+	}
+
+	@Transactional
+	public void addNote(UUID id, String actor, String message) {
+		apply(id, incident -> incident.addNote(actor, message, now()));
+	}
+
+	private Incident apply(UUID id, Function<Incident, Incident.Change> action) {
+		Incident incident = incidents.findById(id).orElseThrow(() -> new IncidentNotFoundException(id));
+		Incident.Change change = action.apply(incident);
+		incidents.save(change);
+		return change.incident();
+	}
+
+	private Instant now() {
+		// PostgreSQL stores microseconds; truncating keeps the stored and returned values equal.
+		return clock.instant().truncatedTo(ChronoUnit.MICROS);
 	}
 
 }

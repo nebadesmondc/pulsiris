@@ -1,13 +1,19 @@
 package dev.pulsiris.incidents.adapter.persistence;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import dev.pulsiris.incidents.application.IncidentFilter;
 import dev.pulsiris.incidents.application.IncidentRepository;
 import dev.pulsiris.incidents.domain.Incident;
 import dev.pulsiris.incidents.domain.IncidentStatus;
+import dev.pulsiris.incidents.domain.TimelineEntry;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -29,6 +35,17 @@ class JpaIncidentRepository implements IncidentRepository {
 	@Override
 	public Optional<Incident> findById(UUID id) {
 		return jpa.findById(id).map(mapper::toDomain);
+	}
+
+	@Override
+	public Page<Incident> findAll(IncidentFilter filter, Pageable pageable) {
+		return jpa.findAll(Specification.where(IncidentSpecifications.matching(filter)), pageable)
+			.map(mapper::toDomain);
+	}
+
+	@Override
+	public List<TimelineEntry> findTimeline(UUID incidentId) {
+		return timeline.findByIncidentIdOrderByOccurredAtAscIdAsc(incidentId).stream().map(mapper::toDomain).toList();
 	}
 
 	@Override

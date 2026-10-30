@@ -23,4 +23,7 @@ interface IncidentsEntityMapper {
 	@Mapping(target = "entryType", source = "type")
 	TimelineEntryEntity toEntity(TimelineEntry entry);
 
+	@Mapping(target = "type", source = "entryType")
+	TimelineEntry toDomain(TimelineEntryEntity entity);
+
 }

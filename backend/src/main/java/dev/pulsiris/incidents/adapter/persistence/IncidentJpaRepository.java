@@ -7,8 +7,9 @@ import java.util.UUID;
 import dev.pulsiris.incidents.domain.IncidentStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-interface IncidentJpaRepository extends JpaRepository<IncidentEntity, UUID> {
+interface IncidentJpaRepository extends JpaRepository<IncidentEntity, UUID>, JpaSpecificationExecutor<IncidentEntity> {
 
 	Optional<IncidentEntity> findByTargetIdAndStatusNot(UUID targetId, IncidentStatus status);
 
