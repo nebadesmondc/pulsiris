@@ -56,7 +56,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768M
+          memory: ${BACKEND_MEMORY:-768M}
+    memswap_limit: ${BACKEND_MEMORY:-768M}
     stop_grace_period: 30s
     logging: *logging
     restart: unless-stopped
