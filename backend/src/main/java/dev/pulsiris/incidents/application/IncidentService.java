@@ -1,6 +1,7 @@
 package dev.pulsiris.incidents.application;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
@@ -50,12 +51,18 @@ public class IncidentService {
 		log.warn("Opened incident {} for target '{}'", change.incident().id(), targetName);
 	}
 
+	/**
+	 * @param unobserved how long the outage went unchecked; a note in the timeline when not zero
+	 */
 	@Transactional
-	public void resolveRecovered(UUID targetId, Instant outageStartedAt, Instant recoveredAt) {
+	public void resolveRecovered(UUID targetId, Instant outageStartedAt, Instant recoveredAt, Duration unobserved) {
 		incidents.findActiveByTargetId(targetId)
 			// A late recovery from an earlier outage must not resolve a newer incident.
 			.filter(incident -> !incident.startedAt().isAfter(outageStartedAt))
 			.ifPresent(incident -> {
+				if (unobserved != null && unobserved.isPositive()) {
+					incidents.save(incident.noteUnobserved(unobserved, recoveredAt));
+				}
 				incidents.save(incident.recover(recoveredAt));
 				log.info("Resolved incident {}: target '{}' recovered", incident.id(), incident.targetName());
 			});

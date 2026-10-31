@@ -51,7 +51,7 @@ class RetentionJobTest {
 
 	private RetentionJob job(int batchSize) {
 		var retention = new ChecksProperties.Retention(Duration.ofDays(30), Duration.ofDays(395), "", batchSize);
-		var properties = new ChecksProperties(Duration.ofSeconds(5), 50, false, retention);
+		var properties = new ChecksProperties(Duration.ofSeconds(5), 50, false, 3, retention);
 		return new RetentionJob(maintenance, properties, Clock.fixed(NOW, ZoneOffset.UTC));
 	}
 

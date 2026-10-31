@@ -14,11 +14,13 @@ import org.mapstruct.MappingTarget;
 interface ChecksEntityMapper {
 
 	@Mapping(target = "version", ignore = true)
+	@Mapping(target = "unobservedSeconds", expression = "java(state.unobserved().toSeconds())")
 	HealthStateEntity toEntity(HealthState state);
 
 	@InheritConfiguration(name = "toEntity")
 	void copyOnto(HealthState state, @MappingTarget HealthStateEntity entity);
 
+	@Mapping(target = "unobserved", expression = "java(java.time.Duration.ofSeconds(entity.getUnobservedSeconds()))")
 	HealthState toDomain(HealthStateEntity entity);
 
 	@Mapping(target = "id", ignore = true)

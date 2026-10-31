@@ -29,7 +29,8 @@ class TargetEventsListener {
 
 	@ApplicationModuleListener
 	void on(TargetRecovered event) {
-		incidents.resolveRecovered(event.targetId(), event.failingSince(), event.recoveredAt());
+		// unobserved is null in events stored before the field existed.
+		incidents.resolveRecovered(event.targetId(), event.failingSince(), event.recoveredAt(), event.unobserved());
 	}
 
 	@ApplicationModuleListener

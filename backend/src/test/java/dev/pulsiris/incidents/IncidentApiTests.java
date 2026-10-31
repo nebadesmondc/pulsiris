@@ -58,7 +58,7 @@ class IncidentApiTests {
 	void listsIncidentsFilteredByTargetAndStatus() {
 		UUID target = UUID.randomUUID();
 		UUID first = openIncident(target);
-		incidents.resolveRecovered(target, startOf(first), clock.instant());
+		incidents.resolveRecovered(target, startOf(first), clock.instant(), Duration.ZERO);
 		UUID second = openIncident(target);
 
 		MvcTestResult all = mvc.get().uri("/api/incidents?targetId={target}", target).exchange();
@@ -127,7 +127,7 @@ class IncidentApiTests {
 	void notesCanBeAddedAfterResolution() {
 		UUID target = UUID.randomUUID();
 		UUID id = openIncident(target);
-		incidents.resolveRecovered(target, startOf(id), clock.instant());
+		incidents.resolveRecovered(target, startOf(id), clock.instant(), Duration.ZERO);
 
 		MvcTestResult result = post("/api/incidents/{id}/notes", id, """
 				{ "actor": "user-x", "message": "Root cause: expired certificate" }

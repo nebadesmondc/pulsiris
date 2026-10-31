@@ -103,6 +103,16 @@ public record Incident(
 		return recorded(this, TimelineEntryType.NOTE, by, text, at);
 	}
 
+	/**
+	 * Notes that the target went unchecked for part of the outage, so its real end, and with it the
+	 * time to resolve, is uncertain.
+	 */
+	public Change noteUnobserved(Duration unobserved, Instant at) {
+		return recorded(this, TimelineEntryType.NOTE, SYSTEM_ACTOR,
+				"Not monitored for " + describe(unobserved) + " during this outage; the recovery time is approximate",
+				at);
+	}
+
 	public boolean isActive() {
 		return status != IncidentStatus.RESOLVED;
 	}
@@ -139,6 +149,21 @@ public record Incident(
 			violations.add(new Violation(field, "must be at most " + maxLength + " characters"));
 		}
 		return stripped;
+	}
+
+	/** E.g. "2d 3h", "2h 30m", "45m". */
+	private static String describe(Duration duration) {
+		var parts = new ArrayList<String>();
+		if (duration.toDays() > 0) {
+			parts.add(duration.toDays() + "d");
+		}
+		if (duration.toHoursPart() > 0) {
+			parts.add(duration.toHoursPart() + "h");
+		}
+		if (duration.toMinutesPart() > 0 && duration.toDays() == 0) {
+			parts.add(duration.toMinutesPart() + "m");
+		}
+		return parts.isEmpty() ? duration.toSeconds() + "s" : String.join(" ", parts);
 	}
 
 	private static void throwIfAny(List<Violation> violations) {

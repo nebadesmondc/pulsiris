@@ -78,6 +78,25 @@ class IncidentFlowTests {
 	}
 
 	@Test
+	void recoveryAfterAMonitoringGapIsMarkedApproximate() {
+		service.stubFor(get("/catalog").willReturn(aResponse().withStatus(503)));
+		UUID target = register("Catalog", "/catalog");
+		runOnce();
+		runOnce();
+		runOnce();
+		await().atMost(Duration.ofSeconds(5)).until(() -> incidentCount(target) == 1);
+
+		// Pulsiris is offline for two hours; the service recovers at some unknown point.
+		clock.advance(Duration.ofHours(2));
+		service.stubFor(get("/catalog").willReturn(aResponse().withStatus(200)));
+		runOnce();
+		runOnce();
+
+		await().atMost(Duration.ofSeconds(5)).until(() -> "RESOLVED".equals(incident(target).get("status")));
+		assertThat(timeline(target)).containsExactly("OPENED by pulsiris", "NOTE by pulsiris", "RESOLVED by pulsiris");
+	}
+
+	@Test
 	void removingATargetResolvesItsIncident() {
 		service.stubFor(get("/legacy").willReturn(aResponse().withStatus(500)));
 		UUID target = register("Legacy", "/legacy");
@@ -102,7 +121,7 @@ class IncidentFlowTests {
 		assertThat(incidentCount(target)).isOne();
 
 		// Even after the incident is resolved, the same outage must not open a new one.
-		incidents.resolveRecovered(target, T0, T0.plusSeconds(90));
+		incidents.resolveRecovered(target, T0, T0.plusSeconds(90), Duration.ZERO);
 		incidents.openForOutage(target, "Search", T0, T0.plusSeconds(30), "Timed out");
 		assertThat(incidentCount(target)).isOne();
 	}
@@ -111,7 +130,7 @@ class IncidentFlowTests {
 	void aNewOutageAfterRecoveryOpensANewIncident() {
 		UUID target = UUID.randomUUID();
 		incidents.openForOutage(target, "Auth", T0, T0.plusSeconds(30), "Connection refused");
-		incidents.resolveRecovered(target, T0, T0.plusSeconds(90));
+		incidents.resolveRecovered(target, T0, T0.plusSeconds(90), Duration.ZERO);
 
 		incidents.openForOutage(target, "Auth", T0.plusSeconds(600), T0.plusSeconds(630), "Connection refused");
 
@@ -124,7 +143,7 @@ class IncidentFlowTests {
 		UUID target = UUID.randomUUID();
 		incidents.openForOutage(target, "Mail", T0.plusSeconds(600), T0.plusSeconds(630), "Unexpected status 502");
 
-		incidents.resolveRecovered(target, T0, T0.plusSeconds(90));
+		incidents.resolveRecovered(target, T0, T0.plusSeconds(90), Duration.ZERO);
 
 		assertThat(incident(target)).containsEntry("status", "OPEN");
 	}
@@ -133,7 +152,7 @@ class IncidentFlowTests {
 	void recoveryWithoutAnIncidentIsIgnored() {
 		UUID target = UUID.randomUUID();
 
-		incidents.resolveRecovered(target, T0, T0.plusSeconds(90));
+		incidents.resolveRecovered(target, T0, T0.plusSeconds(90), Duration.ZERO);
 		incidents.resolveRemovedTarget(target, T0.plusSeconds(90));
 
 		assertThat(incidentCount(target)).isZero();

@@ -36,6 +36,8 @@ public class HealthStateEntity {
 
 	private Instant lastStatusChangeAt;
 
+	private long unobservedSeconds;
+
 	@Version
 	private Long version;
 
@@ -93,6 +95,14 @@ public class HealthStateEntity {
 
 	public void setLastStatusChangeAt(Instant lastStatusChangeAt) {
 		this.lastStatusChangeAt = lastStatusChangeAt;
+	}
+
+	public long getUnobservedSeconds() {
+		return unobservedSeconds;
+	}
+
+	public void setUnobservedSeconds(long unobservedSeconds) {
+		this.unobservedSeconds = unobservedSeconds;
 	}
 
 	public Long getVersion() {

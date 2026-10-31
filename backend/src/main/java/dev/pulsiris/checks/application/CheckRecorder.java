@@ -2,6 +2,7 @@ package dev.pulsiris.checks.application;
 
 import dev.pulsiris.checks.TargetRecovered;
 import dev.pulsiris.checks.TargetWentDown;
+import dev.pulsiris.checks.config.ChecksProperties;
 import dev.pulsiris.checks.domain.CheckResult;
 import dev.pulsiris.checks.domain.HealthState;
 import dev.pulsiris.checks.domain.Thresholds;
@@ -28,17 +29,22 @@ public class CheckRecorder {
 
 	private final ApplicationEventPublisher events;
 
-	CheckRecorder(HealthStateRepository states, CheckResultRepository results, ApplicationEventPublisher events) {
+	private final ChecksProperties properties;
+
+	CheckRecorder(HealthStateRepository states, CheckResultRepository results, ApplicationEventPublisher events,
+			ChecksProperties properties) {
 		this.states = states;
 		this.results = results;
 		this.events = events;
+		this.properties = properties;
 	}
 
 	@Transactional
 	public HealthState record(TargetSnapshot target, CheckResult result) {
 		HealthState current = states.findByTargetId(target.id()).orElseGet(() -> HealthState.unknown(target.id()));
-		HealthState.Evaluation evaluation = current
-			.apply(result, new Thresholds(target.failureThreshold(), target.recoveryThreshold()));
+		HealthState.Evaluation evaluation = current.apply(result,
+				new Thresholds(target.failureThreshold(), target.recoveryThreshold()),
+				target.interval().multipliedBy(properties.staleAfterIntervals()));
 		HealthState next = evaluation.state();
 
 		// State first: check_result has a foreign key to it.
@@ -55,7 +61,7 @@ public class CheckRecorder {
 				case RECOVERED -> {
 					log.info("Target '{}' recovered", target.name());
 					events.publishEvent(new TargetRecovered(target.id(), target.name(), current.failingSince(),
-							result.checkedAt()));
+							result.checkedAt(), evaluation.unobservedDuringOutage()));
 				}
 			}
 		});

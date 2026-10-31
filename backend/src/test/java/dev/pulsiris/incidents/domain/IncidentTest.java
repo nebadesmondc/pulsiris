@@ -116,6 +116,18 @@ class IncidentTest {
 			.satisfies(ex -> assertThat(ex.violations()).extracting(Violation::field).containsExactly("message"));
 	}
 
+	@Test
+	void notesUnobservedTimeAsASystemEntry() {
+		Incident.Change change = incident.noteUnobserved(Duration.ofMinutes(150), at(160));
+
+		assertThat(change.incident()).isEqualTo(incident);
+		assertThat(change.entry().actor()).isEqualTo(Incident.SYSTEM_ACTOR);
+		assertThat(change.entry().message())
+			.isEqualTo("Not monitored for 2h 30m during this outage; the recovery time is approximate");
+		assertThat(incident.noteUnobserved(Duration.ofHours(51).plusMinutes(5), at(1)).entry().message())
+			.startsWith("Not monitored for 2d 3h during");
+	}
+
 	private static Instant at(int minutesAfterDetection) {
 		return DETECTED.plus(Duration.ofMinutes(minutesAfterDetection));
 	}
