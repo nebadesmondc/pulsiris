@@ -1,12 +1,20 @@
 name: pulsiris
 
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:18.6-alpine
     environment:
       POSTGRES_DB: ${DB_NAME:-pulsiris}
       POSTGRES_USER: ${DB_USER:-pulsiris}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-pulsiris}
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
     ports:
       - "127.0.0.1:${DB_PORT:-5433}:5432"
     volumes:
@@ -16,7 +24,46 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    logging: *logging
     restart: unless-stopped
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend/Dockerfile
+    image: pulsiris/backend:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-pulsiris}
+      DB_USER: ${DB_USER:-pulsiris}
+      SPRING_CONFIG_IMPORT: configtree:/run/secrets/
+      LOGGING_STRUCTURED_FORMAT_CONSOLE:
+    secrets:
+      - source: db_password
+        target: DB_PASSWORD
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+    stop_grace_period: 30s
+    logging: *logging
+    restart: unless-stopped
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
 
 volumes:
   postgres-data:

@@ -25,6 +25,6 @@ COPY --from=build /build/extracted/application/ ./
 USER pulsiris
 EXPOSE 8080
 
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60"
 
 ENTRYPOINT ["java", "-jar", "application.jar"]
