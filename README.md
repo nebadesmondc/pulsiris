@@ -23,6 +23,8 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 
 A modular monolith with three modules: `registry`, `checks` and `incidents`. Each owns its own database schema, and modules react to each other through persisted events. Diagrams and decisions are in [docs/architecture](docs/architecture/README.md).
 
+![Container diagram](docs/architecture/images/containers.svg)
+
 ## Quickstart
 
 Requires Docker. Choose a database password first; it is stored as a file outside git.
@@ -76,18 +78,6 @@ cd backend
 ## Configuration
 
 Optional overrides go in `docker/.env`; [docker/.env.example](docker/.env.example) lists them, including the memory limit and JSON logs.
-
-## Roadmap
-
-| # | Milestone | Status |
-|---|---|---|
-| 1 | Core backend: registry, health checks, incidents | Done |
-| 2 | Containers and local operations | In progress |
-| 3 | Observability: Prometheus, Grafana, alerting | Planned |
-| 4 | CI/CD: GitHub Actions, versioned images | Planned |
-| 5 | VPS deployment: hardening, backups, recovery | Planned |
-| 6 | AWS with Terraform | Planned |
-| 7 | Kubernetes, Helm, Argo CD | Planned |
 
 ## Docs
 
