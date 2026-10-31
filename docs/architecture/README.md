@@ -24,8 +24,10 @@
 | Listing | Spring Data `Pageable` for paging and sorting, and JPA Specifications for optional filters bound with `@ModelAttribute`. Page size is capped at 100. |
 | API documentation | springdoc OpenAPI. Each module's routes and docs live in an `*Api` interface that its controller implements. |
 | Scheduling | ShedLock with the JDBC provider, so checks run on one instance at a time. |
-| Duplicate incidents | Prevented by a partial unique index: `UNIQUE (target_id) WHERE status <> 'RESOLVED'`. |
+| Duplicate incidents | Prevented by a partial unique index: `UNIQUE (target_id) WHERE status <> 'RESOLVED'`. `UNIQUE (target_id, started_at)` keeps a redelivered `TargetWentDown` from opening a second incident for the same outage. |
+| Incident actions | Acknowledge, resolve and add notes through `/api/incidents/{id}/…`. Every action adds a timeline entry with its actor. Until authentication exists, the caller names the actor. A manual resolve requires a reason. |
 | Retention | Raw check results for 30 days, daily summaries for 13 months, incidents indefinitely. A nightly job aggregates the summaries and deletes expired rows. |
 | Target removal | Auto-resolves the open incident with resolution `TARGET_REMOVED`. The target's health state and check history are deleted. |
+| Monitoring gaps | A target unchecked for more than 3 intervals (`stale-after-intervals`) starts a fresh streak: earlier failures don't count toward a new outage. A DOWN target stays DOWN; the unchecked time is reported on recovery and noted in the incident timeline. |
 | Check runs | Every 5 s, due targets are probed in parallel on virtual threads, capped at 50 at a time. Each result is recorded in its own transaction. |
 | Probing | JDK `HttpClient`: a timeout per target, redirects followed, TLS certificates verified, response body discarded. Outcomes are `SUCCESS`, `FAILURE`, `TIMEOUT` or `ERROR`. |

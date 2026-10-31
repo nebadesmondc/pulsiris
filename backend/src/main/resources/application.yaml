@@ -42,6 +42,7 @@ pulsiris:
     tick: 5s
     max-concurrent-probes: 50
     scheduler-enabled: true
+    stale-after-intervals: 3
     retention:
       raw-results: 30d
       summaries: 395d

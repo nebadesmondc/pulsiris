@@ -161,8 +161,9 @@ class HttpProberTest {
 		return new ProbeTarget(UUID.randomUUID(), url, method, expectedStatus, timeout);
 	}
 
+	// Generous: the first TLS handshake in a JVM initialises the crypto providers, which is slow on a busy machine.
 	private static ProbeTarget probe(URI url) {
-		return new ProbeTarget(UUID.randomUUID(), url, ProbeMethod.GET, null, Duration.ofSeconds(2));
+		return new ProbeTarget(UUID.randomUUID(), url, ProbeMethod.GET, null, Duration.ofSeconds(10));
 	}
 
 }

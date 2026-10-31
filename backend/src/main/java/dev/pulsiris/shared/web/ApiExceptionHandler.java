@@ -4,6 +4,7 @@ import dev.pulsiris.shared.ConflictException;
 import dev.pulsiris.shared.NotFoundException;
 import dev.pulsiris.shared.ValidationException;
 
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,6 +33,13 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(ConflictException.class)
 	ProblemDetail handleConflict(ConflictException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+	}
+
+	// Another transaction changed the same row (@Version) between our read and our write.
+	@ExceptionHandler(OptimisticLockingFailureException.class)
+	ProblemDetail handleConcurrentChange(OptimisticLockingFailureException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+				"The resource was changed at the same time; reload it and try again");
 	}
 
 }
