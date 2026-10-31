@@ -31,3 +31,9 @@
 | Monitoring gaps | A target unchecked for more than 3 intervals (`stale-after-intervals`) starts a fresh streak: earlier failures don't count toward a new outage. A DOWN target stays DOWN; the unchecked time is reported on recovery and noted in the incident timeline. |
 | Check runs | Every 5 s, due targets are probed in parallel on virtual threads, capped at 50 at a time. Each result is recorded in its own transaction. |
 | Probing | JDK `HttpClient`: a timeout per target, redirects followed, TLS certificates verified, response body discarded. Outcomes are `SUCCESS`, `FAILURE`, `TIMEOUT` or `ERROR`. |
+| Container image | Multi-stage Dockerfile: Gradle builds in a JDK stage, the runtime is Temurin 21 JRE on Alpine. The jar is split into layers and runs as a non-root user. |
+| Local stack | One Compose file runs Postgres and the backend; `up postgres` alone serves IDE development. Published ports bind to `127.0.0.1`. |
+| Secrets | Passed as files through Compose secrets, never as environment variables or in git. Spring reads them with `configtree:`. |
+| Container memory | 768 MiB limit without swap. The heap is 60% of the limit, and the JVM exits on `OutOfMemoryError` so the restart policy recovers it. |
+| Health probes | Liveness covers the process only; readiness also requires the database. |
+| Logs | Plain text on stdout, rotated by Docker at 3 × 10 MB. JSON through `LOGGING_STRUCTURED_FORMAT_CONSOLE`. |
