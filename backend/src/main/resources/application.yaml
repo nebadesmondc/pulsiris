@@ -57,3 +57,8 @@ management:
   endpoint:
     health:
       show-components: always
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState, db

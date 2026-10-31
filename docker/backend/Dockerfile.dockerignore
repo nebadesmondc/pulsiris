@@ -1,0 +1,7 @@
+# Allowlist: only what the build needs is sent to Docker.
+*
+!gradlew
+!gradle/
+!settings.gradle.kts
+!build.gradle.kts
+!src/main/
