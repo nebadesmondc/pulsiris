@@ -101,7 +101,7 @@
                     <mxGeometry height="24" width="120" x="140" y="323" as="geometry" />
                 </mxCell>
                 <mxCell id="er-35" parent="1" style="fontFamily=Helvetica;swimlane;horizontal=1;startSize=32;collapsible=0;html=1;fontSize=12;fontStyle=1;fontColor=#1F2933;fillColor=#EEF4FD;strokeColor=#8FB1EA;swimlaneFillColor=#FFFFFF;strokeWidth=1.25;rounded=1;arcSize=4;" value="target_health_state" vertex="1">
-                    <mxGeometry height="230" width="270" x="440" y="130" as="geometry" />
+                    <mxGeometry height="254" width="270" x="440" y="130" as="geometry" />
                 </mxCell>
                 <mxCell id="er-36" parent="er-35" style="fontFamily=Helvetica;text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;spacingLeft=46;fontColor=#1F2933;" value="target_id" vertex="1">
                     <mxGeometry height="24" width="270" y="35" as="geometry" />
@@ -143,9 +143,15 @@
                     <mxGeometry height="24" width="120" x="140" y="179" as="geometry" />
                 </mxCell>
                 <mxCell id="er-49" parent="er-35" style="fontFamily=Helvetica;text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;spacingLeft=46;fontColor=#1F2933;" value="version" vertex="1">
-                    <mxGeometry height="24" width="270" y="203" as="geometry" />
+                    <mxGeometry height="24" width="270" y="227" as="geometry" />
                 </mxCell>
                 <mxCell id="er-50" parent="er-35" style="fontFamily=Helvetica;text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#616E7C;fontSize=11;fontSize=10;align=right;fontColor=#9AA5B1;connectable=0;" value="bigint" vertex="1">
+                    <mxGeometry height="24" width="120" x="140" y="227" as="geometry" />
+                </mxCell>
+                <mxCell id="er-45-uo" parent="er-35" style="fontFamily=Helvetica;text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=10;spacingRight=10;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=11;spacingLeft=46;fontColor=#1F2933;" value="unobserved_seconds" vertex="1">
+                    <mxGeometry height="24" width="270" y="203" as="geometry" />
+                </mxCell>
+                <mxCell id="er-46-uo" parent="er-35" style="fontFamily=Helvetica;text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;strokeColor=none;fillColor=none;fontColor=#616E7C;fontSize=11;fontSize=10;align=right;fontColor=#9AA5B1;connectable=0;" value="bigint" vertex="1">
                     <mxGeometry height="24" width="120" x="140" y="203" as="geometry" />
                 </mxCell>
                 <mxCell id="er-51" parent="1" style="fontFamily=Helvetica;swimlane;horizontal=1;startSize=32;collapsible=0;html=1;fontSize=12;fontStyle=1;fontColor=#1F2933;fillColor=#EEF4FD;strokeColor=#8FB1EA;swimlaneFillColor=#FFFFFF;strokeWidth=1.25;rounded=1;arcSize=4;" value="check_result" vertex="1">
