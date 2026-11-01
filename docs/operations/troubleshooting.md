@@ -81,6 +81,18 @@ The heap is too small for the data the app holds. The JVM exits on the error and
 
 `docker compose down -v` deletes the `postgres-data` volume. The next start creates an empty database with the password currently in the secret file. `docker volume ls` shows whether the volume exists.
 
+### Grafana rejects the admin password
+
+Grafana reads `secrets/grafana_admin_password` only on its first start, when it creates the `grafana-data` volume, so editing the file later has no effect. Reset the password in the running container:
+
+```bash
+docker compose exec grafana grafana cli admin reset-admin-password "$(cat secrets/grafana_admin_password)"
+```
+
+### A Grafana panel shows "No data"
+
+Run the panel's query in Prometheus. Empty there means no series matched, often because nothing has happened yet (no 5xx responses, no API traffic in the time range). `rate()` needs at least two scrapes in its window.
+
 ## Exercises
 
 Predict the outcome, break it, find the cause with the commands above, then restore.

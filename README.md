@@ -27,11 +27,12 @@ A modular monolith with three modules: `registry`, `checks` and `incidents`. Eac
 
 ## Quickstart
 
-Requires Docker. Choose a database password first; it is stored as a file outside git.
+Requires Docker. Choose a database password and a Grafana admin password first; they are stored as files outside git.
 
 ```bash
 mkdir -p docker/secrets
-openssl rand -base64 24 | tr -d '\n' > docker/secrets/db_password
+openssl rand -base64 24 | tr -d '\r\n' > docker/secrets/db_password
+openssl rand -base64 18 | tr -d '\r\n' > docker/secrets/grafana_admin_password
 docker compose -f docker/compose.yaml up -d --wait
 ```
 
@@ -40,6 +41,7 @@ PowerShell:
 ```powershell
 New-Item -ItemType Directory -Force docker/secrets | Out-Null
 Set-Content docker/secrets/db_password -Value 'choose-a-password' -NoNewline -Encoding ascii
+Set-Content docker/secrets/grafana_admin_password -Value 'choose-another-password' -NoNewline -Encoding ascii
 docker compose -f docker/compose.yaml up -d --wait
 ```
 
@@ -49,6 +51,7 @@ docker compose -f docker/compose.yaml up -d --wait
 | Health | http://localhost:8081/actuator/health |
 | Metrics | http://localhost:8081/actuator/prometheus |
 | Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 (user `admin`) |
 
 Register a service to monitor:
 

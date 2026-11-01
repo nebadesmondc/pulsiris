@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: pulsiris
+    folder: Pulsiris
+    type: file
+    # The JSON files are the source of truth: edits are exported back to them, not saved in Grafana.
+    allowUiUpdates: false
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards
