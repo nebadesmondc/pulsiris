@@ -46,7 +46,8 @@ docker compose -f docker/compose.yaml up -d --wait
 | | |
 |---|---|
 | API docs | http://localhost:8080/swagger-ui.html |
-| Health | http://localhost:8080/actuator/health |
+| Health | http://localhost:8081/actuator/health |
+| Metrics | http://localhost:8081/actuator/prometheus |
 
 Register a service to monitor:
 

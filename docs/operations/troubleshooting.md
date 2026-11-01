@@ -11,7 +11,7 @@ Commands run from `docker/`.
 | How often did it restart, and how did it last exit? | `docker inspect pulsiris-backend-1 --format '{{.RestartCount}} {{.State.ExitCode}}'` |
 | Was it killed? | `docker events --since 10m --filter container=pulsiris-backend-1 --filter event=die --filter event=oom` |
 | Memory and CPU | `docker stats --no-stream` |
-| Is the app ready for traffic? | `curl localhost:8080/actuator/health/readiness` |
+| Is the app ready for traffic? | `curl localhost:8081/actuator/health/readiness` |
 | Which configuration did Compose resolve? | `docker compose config` |
 
 | Exit code | Meaning |
@@ -56,6 +56,16 @@ ss -ltnp 'sport = :8080'            # Linux
 ```
 
 Stop it, or set another `APP_PORT` in `docker/.env`.
+
+### `ports are not available ... access permissions` (Windows)
+
+Windows has reserved the port for Hyper-V or WSL, even though nothing listens on it. The reserved ranges can change after a reboot.
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+Set a port outside those ranges in `docker/.env`, for example `MANAGEMENT_PORT=9081`.
 
 ### Exit code 137 and an `oom` event
 
