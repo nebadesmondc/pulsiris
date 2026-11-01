@@ -38,3 +38,4 @@
 | Health probes | Liveness covers the process only; readiness also requires the database. |
 | Logs | Plain text on stdout, rotated by Docker at 3 × 10 MB. JSON through `LOGGING_STRUCTURED_FORMAT_CONSOLE`. |
 | Metrics | Micrometer with the Prometheus registry. Actuator runs on its own port, 8081, which is never exposed publicly. Request latency uses fixed buckets from 25 ms to 5 s. |
+| Metrics storage | Prometheus scrapes every 15 s and keeps 15 days of data, capped at 1 GB. Configuration lives in `monitoring/`. |
