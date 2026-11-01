@@ -59,6 +59,11 @@ class JpaIncidentRepository implements IncidentRepository {
 	}
 
 	@Override
+	public long countByStatus(IncidentStatus status) {
+		return jpa.countByStatus(status);
+	}
+
+	@Override
 	public void save(Incident.Change change) {
 		Incident incident = change.incident();
 		// Update the managed entity when it exists, so its version is checked; otherwise insert.

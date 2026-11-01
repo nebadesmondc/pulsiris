@@ -1,9 +1,12 @@
 package dev.pulsiris.incidents.application;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import dev.pulsiris.incidents.domain.Incident;
+import dev.pulsiris.incidents.domain.IncidentStatus;
 import dev.pulsiris.shared.ValidationException;
 import dev.pulsiris.shared.Violation;
 
@@ -30,6 +33,17 @@ public class IncidentQueries {
 			throw new ValidationException(List.of(new Violation("from", "must be before to")));
 		}
 		return incidents.findAll(filter, pageable);
+	}
+
+	/** Incidents that are not resolved yet, by status. */
+	public Map<IncidentStatus, Long> countActive() {
+		Map<IncidentStatus, Long> counts = new EnumMap<>(IncidentStatus.class);
+		for (IncidentStatus status : IncidentStatus.values()) {
+			if (status != IncidentStatus.RESOLVED) {
+				counts.put(status, incidents.countByStatus(status));
+			}
+		}
+		return counts;
 	}
 
 	public IncidentDetails get(UUID id) {

@@ -38,4 +38,5 @@
 | Health probes | Liveness covers the process only; readiness also requires the database. |
 | Logs | Plain text on stdout, rotated by Docker at 3 × 10 MB. JSON through `LOGGING_STRUCTURED_FORMAT_CONSOLE`. |
 | Metrics | Micrometer with the Prometheus registry. Actuator runs on its own port, 8081, which is never exposed publicly. Request latency uses fixed buckets from 25 ms to 5 s. |
+| Domain metrics | Each instance times its own checks (`pulsiris_checks_seconds`) and records how late they start (`pulsiris_check_delay_seconds`). Target health and open incidents are read from the database every 15 s in the background, so a slow database never slows a scrape; every instance reports the same values. |
 | Metrics storage | Prometheus scrapes every 15 s and keeps 15 days of data, capped at 1 GB. Configuration lives in `monitoring/`. |

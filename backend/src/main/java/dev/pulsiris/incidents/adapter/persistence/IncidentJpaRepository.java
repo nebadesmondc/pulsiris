@@ -15,4 +15,6 @@ interface IncidentJpaRepository extends JpaRepository<IncidentEntity, UUID>, Jpa
 
 	boolean existsByTargetIdAndStartedAt(UUID targetId, Instant startedAt);
 
+	long countByStatus(IncidentStatus status);
+
 }

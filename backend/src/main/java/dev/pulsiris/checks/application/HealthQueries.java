@@ -1,6 +1,7 @@
 package dev.pulsiris.checks.application;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import dev.pulsiris.checks.domain.CheckResult;
@@ -39,6 +40,16 @@ public class HealthQueries {
 		TargetSnapshot target = existing(targetId);
 		HealthState state = states.findByTargetId(targetId).orElseGet(() -> HealthState.unknown(targetId));
 		return new TargetHealth(target, state);
+	}
+
+	/** Every enabled target with its current health; targets not checked yet are UNKNOWN. */
+	public List<TargetHealth> overview() {
+		List<TargetSnapshot> enabled = targets.findEnabled();
+		Map<UUID, HealthState> known = states.findByTargetIds(enabled.stream().map(TargetSnapshot::id).toList());
+		return enabled.stream()
+			.map(target -> new TargetHealth(target,
+					known.getOrDefault(target.id(), HealthState.unknown(target.id()))))
+			.toList();
 	}
 
 	public Page<CheckResult> history(UUID targetId, CheckFilter filter, Pageable pageable) {
