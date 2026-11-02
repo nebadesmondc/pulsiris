@@ -103,6 +103,33 @@ Grafana is a Go program. `GOMEMLIMIT` makes its garbage collector work harder ne
 
 Run the panel's query in Prometheus. Empty there means no series matched, often because nothing has happened yet (no 5xx responses, no API traffic in the time range). `rate()` needs at least two scrapes in its window.
 
+### An alert is firing
+
+Firing alerts are listed at http://localhost:9090/alerts and in the "Firing alerts" panel of the Pulsiris dashboard. The rules are in `monitoring/prometheus/rules/`.
+
+| Alert | First look |
+|---|---|
+| PulsirisDown | `docker compose ps backend`, then the backend's logs and restart count |
+| ChecksNotRunning | Readiness; `db: DOWN` means Postgres is unreachable. Otherwise look for errors from `CheckScheduler` in the logs |
+| ChecksLate | Number of targets and their timeouts; "Check delay p95" and "Database connections" on the dashboard |
+| ApiErrors | Requests by status on the dashboard; exceptions in the logs |
+| HeapHigh | Heap on the dashboard; raise `BACKEND_MEMORY` if it stays high after restarts |
+| RetentionNotRunning | `docker compose logs backend \| grep -i retention` |
+| ExporterDown | `docker compose ps`; the job's target at http://localhost:9090/targets |
+| HostDiskAlmostFull, HostDiskFillingUp | `docker system df`; `docker image prune` and `docker builder prune` free old images and build cache |
+| HostMemoryLow, OomKill | `docker stats --no-stream`; `oom` events with `docker events` |
+
+### An edited rule has no effect
+
+Prometheus reads its configuration and rules at startup and on a reload signal:
+
+```bash
+docker compose kill -s SIGHUP prometheus
+docker compose logs prometheus --since 1m
+```
+
+A rule that does not parse is logged as `loading groups failed` with its file and line, and the previous rules stay active. The unit tests in the README catch this before a reload.
+
 ## Exercises
 
 Predict the outcome, break it, find the cause with the commands above, then restore.
@@ -115,3 +142,5 @@ Predict the outcome, break it, find the cause with the commands above, then rest
 | 4 | `BACKEND_MEMORY=200M` in `.env`, `docker compose up -d backend` | Remove the line, same command |
 | 5 | `BACKEND_MEMORY=100M` in `.env`, `docker compose up -d backend` | Remove the line, same command |
 | 6 | `docker compose down -v` (deletes local data) | `docker compose up -d --wait` |
+| 7 | `docker compose stop postgres`, watch http://localhost:9090/alerts for 6 minutes | `docker compose start postgres` |
+| 8 | `docker compose stop node-exporter`, watch the alerts for 6 minutes | `docker compose start node-exporter` |

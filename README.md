@@ -8,6 +8,7 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 - **Health checks:** a target goes DOWN after 3 consecutive failures and recovers after 2 successes. Results from before a monitoring gap never count towards an alert.
 - **Incidents:** opened and resolved automatically from health changes, with acknowledge, manual resolve, notes and a timeline.
 - **Retention:** raw check results for 30 days, daily summaries for 13 months.
+- **Self-monitoring:** Prometheus metrics, Grafana dashboards and alert rules for Pulsiris and the machine it runs on.
 - **REST API** documented with OpenAPI.
 
 ## Tech stack
@@ -18,6 +19,7 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 | Data | PostgreSQL 18, Flyway |
 | Tests | JUnit 5, Testcontainers, WireMock, ArchUnit |
 | Runtime | Docker, Docker Compose |
+| Monitoring | Prometheus, Grafana, Node Exporter |
 
 ## Architecture
 
@@ -77,6 +79,12 @@ docker compose -f docker/compose.yaml up -d --wait postgres   # Postgres on 127.
 cd backend
 ./gradlew bootRun
 ./gradlew test                                                # Testcontainers starts its own Postgres
+```
+
+Alert rules have unit tests, run with `promtool` from the Prometheus image:
+
+```bash
+docker compose -f docker/compose.yaml run --rm --no-deps --entrypoint sh prometheus   -c 'promtool check config /etc/prometheus/prometheus.yml && promtool test rules /etc/prometheus/tests/*.yml'
 ```
 
 `bootRun` connects with the password `pulsiris`. If your secret file holds a different one, set `DB_PASSWORD`.

@@ -42,3 +42,4 @@
 | Metrics storage | Prometheus scrapes every 15 s and keeps 15 days of data, capped at 1 GB. Configuration lives in `monitoring/`. |
 | Host metrics | Node Exporter reads the host's CPU, memory, disks and processes through a read-only mount of `/`. Its network figures are the container's own. On Docker Desktop the host is the Docker VM, not the computer. |
 | Dashboards | Grafana's datasource and dashboards are provisioned from `monitoring/grafana/`. Dashboards can't be saved in the UI; changes are exported to their JSON file. |
+| Alert rules | Prometheus alerts on Pulsiris itself and its host, not on monitored targets; their outages are incidents. Rules live in `monitoring/prometheus/rules/` with `promtool` unit tests. Until Alertmanager arrives, firing alerts are shown in Prometheus and Grafana. |
