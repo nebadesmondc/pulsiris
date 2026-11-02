@@ -52,6 +52,7 @@ docker compose -f docker/compose.yaml up -d --wait
 | Metrics | http://localhost:8081/actuator/prometheus |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3000 (user `admin`) |
+| Host metrics | http://localhost:9100/metrics |
 
 Register a service to monitor:
 

@@ -40,4 +40,5 @@
 | Metrics | Micrometer with the Prometheus registry. Actuator runs on its own port, 8081, which is never exposed publicly. Request latency uses fixed buckets from 25 ms to 5 s. |
 | Domain metrics | Each instance times its own checks (`pulsiris_checks_seconds`) and records how late they start (`pulsiris_check_delay_seconds`). Target health and open incidents are read from the database every 15 s in the background, so a slow database never slows a scrape; every instance reports the same values. |
 | Metrics storage | Prometheus scrapes every 15 s and keeps 15 days of data, capped at 1 GB. Configuration lives in `monitoring/`. |
+| Host metrics | Node Exporter reads the host's CPU, memory, disks and processes through a read-only mount of `/`. Its network figures are the container's own. On Docker Desktop the host is the Docker VM, not the computer. |
 | Dashboards | Grafana's datasource and dashboards are provisioned from `monitoring/grafana/`. Dashboards can't be saved in the UI; changes are exported to their JSON file. |

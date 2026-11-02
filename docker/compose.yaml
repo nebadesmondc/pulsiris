@@ -88,6 +88,26 @@ services:
     logging: *logging
     restart: unless-stopped
 
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    hostname: ${NODE_NAME:-local}
+    command:
+      - --path.rootfs=/host
+      - --path.udev.data=/host/run/udev/data
+    # Sees the host's processes and file systems, read-only. Network figures stay those of the container.
+    pid: host
+    volumes:
+      - /:/host:ro
+    ports:
+      - "127.0.0.1:${NODE_EXPORTER_PORT:-9100}:9100"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    memswap_limit: 64M
+    logging: *logging
+    restart: unless-stopped
+
   grafana:
     image: grafana/grafana:13.2.5
     environment:
