@@ -27,6 +27,14 @@ A modular monolith with three modules: `registry`, `checks` and `incidents`. Eac
 
 ![Container diagram](docs/architecture/images/containers.svg)
 
+## Monitoring
+
+Prometheus scrapes the backend and Node Exporter every 15 s and evaluates the alert rules in `monitoring/prometheus/rules/`. Grafana comes with two provisioned dashboards: Pulsiris, for health, checks, API and JVM, and Node Exporter Full, for the host.
+
+![Pulsiris dashboard](docs/images/grafana-1.png)
+
+![Host dashboard](docs/images/grafana-2.png)
+
 ## Quickstart
 
 Requires Docker. Choose a database password and a Grafana admin password first; they are stored as files outside git.
