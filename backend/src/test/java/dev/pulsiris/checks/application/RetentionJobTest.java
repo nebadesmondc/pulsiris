@@ -2,6 +2,7 @@ package dev.pulsiris.checks.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -13,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
+import dev.pulsiris.MutableClock;
 import dev.pulsiris.checks.config.ChecksProperties;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,6 +27,8 @@ class RetentionJobTest {
 	private static final Instant NOW = Instant.parse("2026-11-02T02:30:00Z");
 
 	private final FakeMaintenance maintenance = new FakeMaintenance();
+
+	private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
 
 	@Test
 	void summarizesBeforeDeletingAndUsesTheConfiguredCutoffs() {
@@ -44,15 +49,40 @@ class RetentionJobTest {
 	}
 
 	@Test
+	void recordsWhenItLastSucceeded() {
+		var clock = new MutableClock(NOW);
+		RetentionJob job = job(10, clock);
+		assertThat(lastSuccess()).isEqualTo(NOW.getEpochSecond());
+
+		clock.advance(Duration.ofDays(1));
+		job.run();
+		long succeeded = clock.instant().getEpochSecond();
+		assertThat(lastSuccess()).isEqualTo(succeeded);
+
+		maintenance.failing = true;
+		clock.advance(Duration.ofDays(1));
+		assertThatIllegalStateException().isThrownBy(job::run);
+		assertThat(lastSuccess()).isEqualTo(succeeded);
+	}
+
+	@Test
 	void rejectsRawRetentionShorterThanTwoDays() {
 		assertThatIllegalArgumentException()
 			.isThrownBy(() -> new ChecksProperties.Retention(Duration.ofHours(12), Duration.ofDays(395), "", 10));
 	}
 
 	private RetentionJob job(int batchSize) {
+		return job(batchSize, Clock.fixed(NOW, ZoneOffset.UTC));
+	}
+
+	private RetentionJob job(int batchSize, Clock clock) {
 		var retention = new ChecksProperties.Retention(Duration.ofDays(30), Duration.ofDays(395), "", batchSize);
 		var properties = new ChecksProperties(Duration.ofSeconds(5), 50, false, 3, retention);
-		return new RetentionJob(maintenance, properties, Clock.fixed(NOW, ZoneOffset.UTC));
+		return new RetentionJob(maintenance, properties, clock, registry);
+	}
+
+	private double lastSuccess() {
+		return registry.get("pulsiris.retention.last.success.timestamp").gauge().value();
 	}
 
 	private static final class FakeMaintenance implements CheckHistoryMaintenance {
@@ -61,8 +91,13 @@ class RetentionJobTest {
 
 		private final Deque<Integer> deletedPerBatch = new ArrayDeque<>();
 
+		private boolean failing;
+
 		@Override
 		public int summarizeDaysBefore(LocalDate today) {
+			if (failing) {
+				throw new IllegalStateException("database unavailable");
+			}
 			calls.add("summarize before " + today);
 			return 0;
 		}
