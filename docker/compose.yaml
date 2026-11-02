@@ -94,6 +94,9 @@ services:
     command:
       - --path.rootfs=/host
       - --path.udev.data=/host/run/udev/data
+      # The defaults, plus in-memory file systems and the mounts Docker Desktop adds.
+      - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|fuse\..*|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|erofs|sysfs|tracefs|tmpfs|9p|rootfs)$
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|run/desktop|sys|parent-distro|mnt/host|mnt/docker-desktop-disk|usr/lib/wsl|usr/lib/modules|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)
     # Sees the host's processes and file systems, read-only. Network figures stay those of the container.
     pid: host
     volumes:
