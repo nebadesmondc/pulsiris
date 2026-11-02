@@ -103,6 +103,10 @@ Grafana is a Go program. `GOMEMLIMIT` makes its garbage collector work harder ne
 
 Run the panel's query in Prometheus. Empty there means no series matched, often because nothing has happened yet (no 5xx responses, no API traffic in the time range). `rate()` needs at least two scrapes in its window.
 
+### Node Exporter Full shows negative CPU Busy or Root FS N/A (Docker Desktop)
+
+Node Exporter measures Docker Desktop's VM. Its kernel counts slightly more than one second of idle time per CPU per second, so busy time comes out below zero. The VM has no file system mounted at `/` that the exporter can see, so the root panels stay empty. On a Linux server both are correct.
+
 ### An alert is firing
 
 Firing alerts are listed at http://localhost:9090/alerts and in the "Firing alerts" panel of the Pulsiris dashboard. The rules are in `monitoring/prometheus/rules/`.
