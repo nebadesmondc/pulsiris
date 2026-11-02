@@ -559,7 +559,7 @@
             "showPoints": "never",
             "spanNulls": false,
             "stacking": {
-              "mode": "normal",
+              "mode": "none",
               "group": "A"
             }
           },
@@ -887,7 +887,7 @@
             "showPoints": "never",
             "spanNulls": false,
             "stacking": {
-              "mode": "normal",
+              "mode": "none",
               "group": "A"
             }
           },
