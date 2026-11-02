@@ -1,0 +1,233 @@
+rule_files:
+  - ../rules/pulsiris.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: Pulsiris stops answering scrapes
+    interval: 15s
+    input_series:
+      - series: up{job="pulsiris", instance="backend:8081"}
+        values: 1 1 1 0x10
+    alert_rule_test:
+      - eval_time: 1m30s
+        alertname: PulsirisDown
+        exp_alerts: []
+      - eval_time: 2m
+        alertname: PulsirisDown
+        exp_alerts:
+          - exp_labels: {severity: critical, job: pulsiris, instance: backend:8081}
+            exp_annotations:
+              summary: Prometheus cannot scrape Pulsiris on backend:8081
+
+  - name: Check runs stop succeeding when the database goes away
+    interval: 15s
+    input_series:
+      - series: tasks_scheduled_execution_seconds_count{job="pulsiris", instance="backend:8081", code_function="runDueChecks", outcome="SUCCESS"}
+        values: 0+3x40 120x40
+      - series: tasks_scheduled_execution_seconds_count{job="pulsiris", instance="backend:8081", code_function="runDueChecks", outcome="ERROR"}
+        values: _x40 1+1x40
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: ChecksNotRunning
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: ChecksNotRunning
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: No check run has succeeded for 5 minutes
+
+  - name: Checks start late
+    interval: 15s
+    input_series:
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="1.0"}
+        values: 0x60
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="30.0"}
+        values: 0x60
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="60.0"}
+        values: 0+1x60
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="+Inf"}
+        values: 0+1x60
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ChecksLate
+        exp_alerts: []
+      - eval_time: 11m
+        alertname: ChecksLate
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: Checks start 58.5s late (p95)
+
+  - name: Checks start on time
+    interval: 15s
+    input_series:
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="1.0"}
+        values: 0+1x60
+      - series: pulsiris_check_delay_seconds_bucket{job="pulsiris", le="+Inf"}
+        values: 0+1x60
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: ChecksLate
+        exp_alerts: []
+
+  - name: API errors
+    interval: 15s
+    input_series:
+      - series: http_server_requests_seconds_count{job="pulsiris", status="200"}
+        values: 0+90x60
+      - series: http_server_requests_seconds_count{job="pulsiris", status="500"}
+        values: 0+10x60
+      - series: http_server_requests_seconds_count{job="pulsiris", status="404"}
+        values: 0+50x60
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ApiErrors
+        exp_alerts: []
+      - eval_time: 11m
+        alertname: ApiErrors
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: 6.667% of API requests fail with a server error
+
+  - name: Heap stays full after collections
+    interval: 1m
+    input_series:
+      - series: jvm_gc_live_data_size_bytes{job="pulsiris", instance="backend:8081"}
+        values: 900x20
+      - series: jvm_gc_max_data_size_bytes{job="pulsiris", instance="backend:8081"}
+        values: 1000x20
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: HeapHigh
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: HeapHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, job: pulsiris, instance: backend:8081}
+            exp_annotations:
+              summary: Heap is 90% full after garbage collection on backend:8081
+
+  # The test clock starts at Unix time 0, so a gauge of 0 means "started at the beginning of the test".
+  - name: Retention never succeeds
+    interval: 1m
+    input_series:
+      - series: pulsiris_retention_last_success_timestamp_seconds{job="pulsiris", instance="backend:8081"}
+        values: 0x1700
+    alert_rule_test:
+      - eval_time: 25h
+        alertname: RetentionNotRunning
+        exp_alerts: []
+      - eval_time: 27h
+        alertname: RetentionNotRunning
+        exp_alerts:
+          - exp_labels: {severity: warning}
+            exp_annotations:
+              summary: The retention job has not succeeded for 1d 3h 0m 0s
+
+  - name: Retention succeeds on another instance
+    interval: 1m
+    input_series:
+      - series: pulsiris_retention_last_success_timestamp_seconds{job="pulsiris", instance="a"}
+        values: 0x1700
+      - series: pulsiris_retention_last_success_timestamp_seconds{job="pulsiris", instance="b"}
+        values: 0x1440 86400x260
+    alert_rule_test:
+      - eval_time: 27h
+        alertname: RetentionNotRunning
+        exp_alerts: []
+
+  - name: Node Exporter stops answering scrapes
+    interval: 15s
+    input_series:
+      - series: up{job="node", instance="node-exporter:9100"}
+        values: 0x30
+      - series: up{job="pulsiris", instance="backend:8081"}
+        values: 1x30
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: ExporterDown
+        exp_alerts:
+          - exp_labels: {severity: warning, job: node, instance: node-exporter:9100}
+            exp_annotations:
+              summary: Prometheus cannot scrape node on node-exporter:9100
+
+  - name: Disk almost full
+    interval: 1m
+    input_series:
+      - series: node_filesystem_avail_bytes{job="node", instance="vps", mountpoint="/"}
+        values: 5x10
+      - series: node_filesystem_size_bytes{job="node", instance="vps", mountpoint="/"}
+        values: 100x10
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: HostDiskAlmostFull
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: HostDiskAlmostFull
+        exp_alerts:
+          - exp_labels: {severity: critical, job: node, instance: vps, mountpoint: /}
+            exp_annotations:
+              summary: / on vps has 5% free
+
+  # Both disks lose 1 unit a minute: the fuller one runs out in about 3 hours, the other is mostly empty.
+  - name: Disk filling up
+    interval: 1m
+    input_series:
+      - series: node_filesystem_avail_bytes{job="node", instance="vps", mountpoint="/"}
+        values: 200-1x90
+      - series: node_filesystem_size_bytes{job="node", instance="vps", mountpoint="/"}
+        values: 1000x90
+      - series: node_filesystem_avail_bytes{job="node", instance="vps", mountpoint="/data"}
+        values: 900-1x90
+      - series: node_filesystem_size_bytes{job="node", instance="vps", mountpoint="/data"}
+        values: 1000x90
+    alert_rule_test:
+      - eval_time: 59m
+        alertname: HostDiskFillingUp
+        exp_alerts: []
+      - eval_time: 62m
+        alertname: HostDiskFillingUp
+        exp_alerts:
+          - exp_labels: {severity: warning, job: node, instance: vps, mountpoint: /}
+            exp_annotations:
+              summary: / on vps will be full within 24 hours
+
+  - name: Memory low
+    interval: 1m
+    input_series:
+      - series: node_memory_MemAvailable_bytes{job="node", instance="vps"}
+        values: 50 5x15
+      - series: node_memory_MemTotal_bytes{job="node", instance="vps"}
+        values: 100x15
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: HostMemoryLow
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: HostMemoryLow
+        exp_alerts:
+          - exp_labels: {severity: warning, job: node, instance: vps}
+            exp_annotations:
+              summary: vps has 5% of its memory available
+
+  - name: The kernel kills a process
+    interval: 1m
+    input_series:
+      - series: node_vmstat_oom_kill{job="node", instance="vps"}
+        values: 7x10 8x10
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: OomKill
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: OomKill
+        exp_alerts:
+          - exp_labels: {severity: warning, job: node, instance: vps}
+            exp_annotations:
+              summary: The kernel killed a process on vps because memory ran out
+      - eval_time: 18m
+        alertname: OomKill
+        exp_alerts: []
