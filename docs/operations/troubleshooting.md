@@ -89,6 +89,16 @@ Grafana reads `secrets/grafana_admin_password` only on its first start, when it 
 docker compose exec grafana grafana cli admin reset-admin-password "$(cat secrets/grafana_admin_password)"
 ```
 
+### Grafana shows "Failed to fetch" and every panel is empty
+
+Grafana itself is unreachable, usually restarting. Look for an `oom` event:
+
+```bash
+docker events --since 1h --filter container=pulsiris-grafana-1 --filter event=oom --filter event=start
+```
+
+Grafana is a Go program. `GOMEMLIMIT` makes its garbage collector work harder near 400 MiB, below the 512M container limit; without it the heap overshoots and the container is killed. Keep `GOMEMLIMIT` about 80% of the limit when changing either.
+
 ### A Grafana panel shows "No data"
 
 Run the panel's query in Prometheus. Empty there means no series matched, often because nothing has happened yet (no 5xx responses, no API traffic in the time range). `rate()` needs at least two scrapes in its window.
