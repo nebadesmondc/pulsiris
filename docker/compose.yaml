@@ -28,10 +28,8 @@ services:
     restart: unless-stopped
 
   backend:
-    build:
-      context: ../backend
-      dockerfile: ../docker/backend/Dockerfile
-    image: pulsiris/backend:local
+    # A released version or sha-<commit> from GHCR; local is built with compose.build.yaml.
+    image: ghcr.io/nebadesmondc/pulsiris-backend:${PULSIRIS_VERSION:-local}
     depends_on:
       postgres:
         condition: service_healthy
