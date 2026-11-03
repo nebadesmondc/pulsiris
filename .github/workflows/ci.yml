@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# A newer push to a pull request cancels its older run; every master commit runs to the end.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+      # Caches Gradle downloads; only master runs write the cache.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      # Compiles, runs every test (Testcontainers uses the runner's Docker) and builds the jar.
+      - run: ./gradlew build
+      - if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports
+          path: backend/build/reports/tests/test
+          retention-days: 7
+
+  # Builds the image once, starts it with Postgres, and on master pushes exactly that image.
+  image:
+    name: Image
+    needs: [backend, config]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/nebadesmondc/pulsiris-backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - id: version
+        run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: backend
+          file: docker/backend/Dockerfile
+          build-args: VERSION=${{ steps.version.outputs.tag }}
+          tags: ${{ env.IMAGE }}:${{ steps.version.outputs.tag }}
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test
+        env:
+          PULSIRIS_VERSION: ${{ steps.version.outputs.tag }}
+        run: |
+          mkdir -p docker/secrets
+          printf smoke > docker/secrets/db_password
+          docker compose -f docker/compose.yaml up -d --wait --wait-timeout 180 postgres backend
+          curl -fsS localhost:8081/actuator/info | jq -e --arg v "$PULSIRIS_VERSION" '.build.version == $v'
+      - if: failure()
+        run: docker compose -f docker/compose.yaml logs postgres backend
+      - if: github.event_name == 'push'
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: github.event_name == 'push'
+        run: docker push "$IMAGE:${{ steps.version.outputs.tag }}"
+
+  config:
+    name: Compose and alert rules
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker compose -f docker/compose.yaml -f docker/compose.build.yaml config --quiet
+      # Same Prometheus image as the stack, so the rules are tested by the version that runs them.
+      - run: >-
+          docker compose -f docker/compose.yaml run --rm --no-deps --entrypoint sh prometheus
+          -c 'promtool check config /etc/prometheus/prometheus.yml && promtool test rules /etc/prometheus/tests/*.yml'

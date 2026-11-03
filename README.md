@@ -43,7 +43,7 @@ Requires Docker. Choose a database password and a Grafana admin password first; 
 mkdir -p docker/secrets
 openssl rand -base64 24 | tr -d '\r\n' > docker/secrets/db_password
 openssl rand -base64 18 | tr -d '\r\n' > docker/secrets/grafana_admin_password
-docker compose -f docker/compose.yaml up -d --wait
+docker compose -f docker/compose.yaml -f docker/compose.build.yaml up -d --wait
 ```
 
 PowerShell:
@@ -52,7 +52,7 @@ PowerShell:
 New-Item -ItemType Directory -Force docker/secrets | Out-Null
 Set-Content docker/secrets/db_password -Value 'choose-a-password' -NoNewline -Encoding ascii
 Set-Content docker/secrets/grafana_admin_password -Value 'choose-another-password' -NoNewline -Encoding ascii
-docker compose -f docker/compose.yaml up -d --wait
+docker compose -f docker/compose.yaml -f docker/compose.build.yaml up -d --wait
 ```
 
 | | |

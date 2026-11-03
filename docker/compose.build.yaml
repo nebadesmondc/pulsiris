@@ -1,0 +1,8 @@
+# Builds the backend from source instead of pulling it:
+#   docker compose -f docker/compose.yaml -f docker/compose.build.yaml up -d --wait
+services:
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../docker/backend/Dockerfile
+    pull_policy: build

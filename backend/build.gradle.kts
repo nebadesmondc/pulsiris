@@ -5,7 +5,8 @@ plugins {
 }
 
 group = "dev.pulsiris"
-version = "0.0.1-SNAPSHOT"
+// CI passes the image tag, e.g. -PappVersion=sha-ae39390; /actuator/info reports it.
+version = providers.gradleProperty("appVersion").getOrElse("dev")
 description = "Portable application operations and reliability toolkit"
 
 java {
