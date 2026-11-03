@@ -4,8 +4,11 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.concurrent.atomic.AtomicLong;
 
 import dev.pulsiris.checks.config.ChecksProperties;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +29,19 @@ public class RetentionJob {
 
 	private final Clock clock;
 
-	RetentionJob(CheckHistoryMaintenance maintenance, ChecksProperties properties, Clock clock) {
+	private final AtomicLong lastSuccess;
+
+	RetentionJob(CheckHistoryMaintenance maintenance, ChecksProperties properties, Clock clock,
+			MeterRegistry registry) {
 		this.maintenance = maintenance;
 		this.retention = properties.retention();
 		this.clock = clock;
+		// Starts at startup time, so an alert can tell a job that never succeeds from one not due yet.
+		this.lastSuccess = new AtomicLong(clock.instant().getEpochSecond());
+		Gauge.builder("pulsiris.retention.last.success.timestamp", lastSuccess, AtomicLong::get)
+			.description("When the retention job last succeeded on this instance, or when the instance started")
+			.baseUnit("seconds")
+			.register(registry);
 	}
 
 	public Report run() {
@@ -51,6 +63,7 @@ public class RetentionJob {
 		int deletedSummaries = maintenance.deleteSummariesBefore(today.minusDays(retention.summaries().toDays()));
 
 		Report report = new Report(summarized, deletedResults, deletedSummaries);
+		lastSuccess.set(clock.instant().getEpochSecond());
 		log.info("Retention: summarized {} target-day(s), deleted {} check result(s) and {} summary row(s)",
 				report.summarized(), report.deletedResults(), report.deletedSummaries());
 		return report;

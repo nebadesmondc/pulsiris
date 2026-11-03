@@ -1,0 +1,99 @@
+groups:
+  - name: pulsiris
+    rules:
+      - alert: PulsirisDown
+        expr: up{job="pulsiris"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus cannot scrape Pulsiris on {{ $labels.instance }}
+
+      # A run starts every 5 s. None succeeding means the database is unreachable or the scheduler is stuck.
+      - alert: ChecksNotRunning
+        expr: sum(increase(tasks_scheduled_execution_seconds_count{job="pulsiris", code_function="runDueChecks", outcome="SUCCESS"}[5m])) == 0
+        labels:
+          severity: critical
+        annotations:
+          summary: No check run has succeeded for 5 minutes
+
+      - alert: ChecksLate
+        expr: histogram_quantile(0.95, sum by (le) (rate(pulsiris_check_delay_seconds_bucket{job="pulsiris"}[5m]))) > 30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Checks start {{ $value | humanizeDuration }} late (p95)
+
+      - alert: ApiErrors
+        expr: |
+          sum(rate(http_server_requests_seconds_count{job="pulsiris", status=~"5.."}[5m]))
+            / sum(rate(http_server_requests_seconds_count{job="pulsiris"}[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: '{{ $value | humanizePercentage }} of API requests fail with a server error'
+
+      # Live data is what remains after a collection, so a high value means memory is really held.
+      - alert: HeapHigh
+        expr: jvm_gc_live_data_size_bytes{job="pulsiris"} / jvm_gc_max_data_size_bytes{job="pulsiris"} > 0.8
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Heap is {{ $value | humanizePercentage }} full after garbage collection on {{ $labels.instance }}
+
+      # Runs nightly on one instance; the others report when they started.
+      - alert: RetentionNotRunning
+        expr: time() - max(pulsiris_retention_last_success_timestamp_seconds{job="pulsiris"}) > 26 * 3600
+        labels:
+          severity: warning
+        annotations:
+          summary: The retention job has not succeeded for {{ $value | humanizeDuration }}
+
+  - name: monitoring
+    rules:
+      - alert: ExporterDown
+        expr: up{job!="pulsiris"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Prometheus cannot scrape {{ $labels.job }} on {{ $labels.instance }}
+
+  - name: host
+    rules:
+      - alert: HostDiskAlmostFull
+        expr: node_filesystem_avail_bytes{job="node"} / node_filesystem_size_bytes{job="node"} < 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: '{{ $labels.mountpoint }} on {{ $labels.instance }} has {{ $value | humanizePercentage }} free'
+
+      # Only once it is fairly full, so a burst of writes on an empty disk does not alert.
+      - alert: HostDiskFillingUp
+        expr: |
+          predict_linear(node_filesystem_avail_bytes{job="node"}[6h], 24 * 3600) < 0
+            and node_filesystem_avail_bytes{job="node"} / node_filesystem_size_bytes{job="node"} < 0.25
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: '{{ $labels.mountpoint }} on {{ $labels.instance }} will be full within 24 hours'
+
+      - alert: HostMemoryLow
+        expr: node_memory_MemAvailable_bytes{job="node"} / node_memory_MemTotal_bytes{job="node"} < 0.10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: '{{ $labels.instance }} has {{ $value | humanizePercentage }} of its memory available'
+
+      - alert: OomKill
+        expr: increase(node_vmstat_oom_kill{job="node"}[5m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: The kernel killed a process on {{ $labels.instance }} because memory ran out

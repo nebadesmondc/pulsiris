@@ -11,7 +11,7 @@ Commands run from `docker/`.
 | How often did it restart, and how did it last exit? | `docker inspect pulsiris-backend-1 --format '{{.RestartCount}} {{.State.ExitCode}}'` |
 | Was it killed? | `docker events --since 10m --filter container=pulsiris-backend-1 --filter event=die --filter event=oom` |
 | Memory and CPU | `docker stats --no-stream` |
-| Is the app ready for traffic? | `curl localhost:8080/actuator/health/readiness` |
+| Is the app ready for traffic? | `curl localhost:8081/actuator/health/readiness` |
 | Which configuration did Compose resolve? | `docker compose config` |
 
 | Exit code | Meaning |
@@ -57,6 +57,16 @@ ss -ltnp 'sport = :8080'            # Linux
 
 Stop it, or set another `APP_PORT` in `docker/.env`.
 
+### `ports are not available ... access permissions` (Windows)
+
+Windows has reserved the port for Hyper-V or WSL, even though nothing listens on it. The reserved ranges can change after a reboot.
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+```
+
+Set a port outside those ranges in `docker/.env`, for example `MANAGEMENT_PORT=9081`.
+
 ### Exit code 137 and an `oom` event
 
 The backend used more than `BACKEND_MEMORY`. Swap is disabled for the container, so it is killed instead of slowing down. `OOMKilled` in `docker inspect` resets when the container restarts; `docker events` keeps the record.
@@ -71,6 +81,59 @@ The heap is too small for the data the app holds. The JVM exits on the error and
 
 `docker compose down -v` deletes the `postgres-data` volume. The next start creates an empty database with the password currently in the secret file. `docker volume ls` shows whether the volume exists.
 
+### Grafana rejects the admin password
+
+Grafana reads `secrets/grafana_admin_password` only on its first start, when it creates the `grafana-data` volume, so editing the file later has no effect. Reset the password in the running container:
+
+```bash
+docker compose exec grafana grafana cli admin reset-admin-password "$(cat secrets/grafana_admin_password)"
+```
+
+### Grafana shows "Failed to fetch" and every panel is empty
+
+Grafana itself is unreachable, usually restarting. Look for an `oom` event:
+
+```bash
+docker events --since 1h --filter container=pulsiris-grafana-1 --filter event=oom --filter event=start
+```
+
+Grafana is a Go program. `GOMEMLIMIT` makes its garbage collector work harder near 400 MiB, below the 512M container limit; without it the heap overshoots and the container is killed. Keep `GOMEMLIMIT` about 80% of the limit when changing either.
+
+### A Grafana panel shows "No data"
+
+Run the panel's query in Prometheus. Empty there means no series matched, often because nothing has happened yet (no 5xx responses, no API traffic in the time range). `rate()` needs at least two scrapes in its window.
+
+### Node Exporter Full shows negative CPU Busy or Root FS N/A (Docker Desktop)
+
+Node Exporter measures Docker Desktop's VM. Its kernel counts slightly more than one second of idle time per CPU per second, so busy time comes out below zero. The VM has no file system mounted at `/` that the exporter can see, so the root panels stay empty. On a Linux server both are correct.
+
+### An alert is firing
+
+Firing alerts are listed at http://localhost:9090/alerts and in the "Firing alerts" panel of the Pulsiris dashboard. The rules are in `monitoring/prometheus/rules/`.
+
+| Alert | First look |
+|---|---|
+| PulsirisDown | `docker compose ps backend`, then the backend's logs and restart count |
+| ChecksNotRunning | Readiness; `db: DOWN` means Postgres is unreachable. Otherwise look for errors from `CheckScheduler` in the logs |
+| ChecksLate | Number of targets and their timeouts; "Check delay p95" and "Database connections" on the dashboard |
+| ApiErrors | Requests by status on the dashboard; exceptions in the logs |
+| HeapHigh | Heap on the dashboard; raise `BACKEND_MEMORY` if it stays high after restarts |
+| RetentionNotRunning | `docker compose logs backend \| grep -i retention` |
+| ExporterDown | `docker compose ps`; the job's target at http://localhost:9090/targets |
+| HostDiskAlmostFull, HostDiskFillingUp | `docker system df`; `docker image prune` and `docker builder prune` free old images and build cache |
+| HostMemoryLow, OomKill | `docker stats --no-stream`; `oom` events with `docker events` |
+
+### An edited rule has no effect
+
+Prometheus reads its configuration and rules at startup and on a reload signal:
+
+```bash
+docker compose kill -s SIGHUP prometheus
+docker compose logs prometheus --since 1m
+```
+
+A rule that does not parse is logged as `loading groups failed` with its file and line, and the previous rules stay active. The unit tests in the README catch this before a reload.
+
 ## Exercises
 
 Predict the outcome, break it, find the cause with the commands above, then restore.
@@ -83,3 +146,5 @@ Predict the outcome, break it, find the cause with the commands above, then rest
 | 4 | `BACKEND_MEMORY=200M` in `.env`, `docker compose up -d backend` | Remove the line, same command |
 | 5 | `BACKEND_MEMORY=100M` in `.env`, `docker compose up -d backend` | Remove the line, same command |
 | 6 | `docker compose down -v` (deletes local data) | `docker compose up -d --wait` |
+| 7 | `docker compose stop postgres`, watch http://localhost:9090/alerts for 6 minutes | `docker compose start postgres` |
+| 8 | `docker compose stop node-exporter`, watch the alerts for 6 minutes | `docker compose start node-exporter` |

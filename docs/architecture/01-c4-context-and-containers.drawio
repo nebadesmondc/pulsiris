@@ -88,10 +88,10 @@
                 <mxCell id="l2-5" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#2F6FDB;strokeColor=#2459B5;fontColor=#FFFFFF;shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;" value="&lt;b style=&quot;color: rgb(255, 255, 255);&quot;&gt;Database&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#DCE7FA&quot;&gt;[Container: PostgreSQL]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: rgb(255, 255, 255);&quot;&gt;Targets, check history, incidents&lt;/font&gt;" vertex="1">
                     <mxGeometry height="120" width="220" x="392" y="610" as="geometry"/>
                 </mxCell>
-                <mxCell id="l2-6" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#FFFFFF;strokeColor=#B6BDC6;fontColor=#7B8794;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px&#39; color=&#39;#9AA5B1&#39;&gt;[Container: Prometheus]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&#39;font-size:11px&#39;&gt;Metrics and alert rules&lt;/font&gt;" vertex="1">
+                <mxCell id="l2-6" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#2F6FDB;strokeColor=#2459B5;fontColor=#FFFFFF;" value="&lt;b style=&quot;color: rgb(255, 255, 255);&quot;&gt;Prometheus&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#DCE7FA&quot;&gt;[Container: Prometheus]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: rgb(255, 255, 255);&quot;&gt;Metrics and alert rules&lt;/font&gt;" vertex="1">
                     <mxGeometry height="120" width="220" x="712" y="340" as="geometry"/>
                 </mxCell>
-                <mxCell id="l2-7" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#FFFFFF;strokeColor=#B6BDC6;fontColor=#7B8794;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Grafana&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px&#39; color=&#39;#9AA5B1&#39;&gt;[Container: Grafana]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&#39;font-size:11px&#39;&gt;Dashboards&lt;/font&gt;" vertex="1">
+                <mxCell id="l2-7" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#2F6FDB;strokeColor=#2459B5;fontColor=#FFFFFF;" value="&lt;b style=&quot;color: rgb(255, 255, 255);&quot;&gt;Grafana&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#DCE7FA&quot;&gt;[Container: Grafana]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: rgb(255, 255, 255);&quot;&gt;Dashboards&lt;/font&gt;" vertex="1">
                     <mxGeometry height="120" width="220" x="1032" y="340" as="geometry"/>
                 </mxCell>
                 <mxCell id="l2-8" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#FFFFFF;strokeColor=#B6BDC6;fontColor=#7B8794;dashed=1;dashPattern=6 4;" value="&lt;b&gt;Alertmanager&lt;/b&gt;&lt;br&gt;&lt;font style=&#39;font-size:10px&#39; color=&#39;#9AA5B1&#39;&gt;[Container: Alertmanager]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&#39;font-size:11px&#39;&gt;Alert routing&lt;/font&gt;" vertex="1">
@@ -106,7 +106,7 @@
                 <mxCell id="l2-11" edge="1" parent="1" source="l2-2" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-4" value="Manages targets, views incidents&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[JSON/HTTPS]&lt;/font&gt;">
                     <mxGeometry relative="1" x="-0.35" as="geometry"/>
                 </mxCell>
-                <mxCell id="l2-12" edge="1" parent="1" source="l2-2" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;dashed=1;dashPattern=6 4;strokeColor=#B6BDC6;fontColor=#7B8794;" target="l2-7" value="Views dashboards&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTPS]&lt;/font&gt;">
+                <mxCell id="l2-12" edge="1" parent="1" source="l2-2" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-7" value="Views dashboards&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTPS]&lt;/font&gt;">
                     <mxGeometry relative="1" x="-0.35" as="geometry"/>
                 </mxCell>
                 <mxCell id="l2-13" edge="1" parent="1" source="l2-4" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-9" value="Checks health&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTP]&lt;/font&gt;">
@@ -115,10 +115,10 @@
                 <mxCell id="l2-14" edge="1" parent="1" source="l2-4" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-5" value="Reads / writes&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[JDBC]&lt;/font&gt;">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="l2-15" edge="1" parent="1" source="l2-6" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;dashed=1;dashPattern=6 4;strokeColor=#B6BDC6;fontColor=#7B8794;" target="l2-4" value="Scrapes metrics&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTP]&lt;/font&gt;">
+                <mxCell id="l2-15" edge="1" parent="1" source="l2-6" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-4" value="Scrapes metrics&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTP]&lt;/font&gt;">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="l2-16" edge="1" parent="1" source="l2-7" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;dashed=1;dashPattern=6 4;strokeColor=#B6BDC6;fontColor=#7B8794;" target="l2-6" value="Queries&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[PromQL]&lt;/font&gt;">
+                <mxCell id="l2-16" edge="1" parent="1" source="l2-7" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;" target="l2-6" value="Queries&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[PromQL]&lt;/font&gt;">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="l2-17" edge="1" parent="1" source="l2-6" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;dashed=1;dashPattern=6 4;strokeColor=#B6BDC6;fontColor=#7B8794;" target="l2-8" value="Fires alerts&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTP]&lt;/font&gt;">
@@ -159,6 +159,17 @@
                 </mxCell>
                 <mxCell id="l2-30" edge="1" parent="1" source="l2-4" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;dashed=1;dashPattern=6 4;strokeColor=#B6BDC6;fontColor=#7B8794;" target="l2-10" value="Sends notifications&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[Webhook / SMTP]&lt;/font&gt;">
                     <mxGeometry relative="1" x="0.4" as="geometry"/>
+                </mxCell>
+                <mxCell id="l2-31" parent="1" style="fontFamily=Helvetica;rounded=1;absoluteArcSize=1;arcSize=14;whiteSpace=wrap;html=1;fontSize=12;align=center;verticalAlign=middle;spacing=10;strokeWidth=1.25;fillColor=#2F6FDB;strokeColor=#2459B5;fontColor=#FFFFFF;" value="&lt;b style=&quot;color: rgb(255, 255, 255);&quot;&gt;Node Exporter&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot; color=&quot;#DCE7FA&quot;&gt;[Container: Node Exporter]&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px; color: rgb(255, 255, 255);&quot;&gt;Host CPU, memory and disk metrics&lt;/font&gt;" vertex="1">
+                    <mxGeometry height="120" width="220" x="1032" y="610" as="geometry"/>
+                </mxCell>
+                <mxCell id="l2-32" edge="1" parent="1" source="l2-6" target="l2-31" style="fontFamily=Helvetica;html=1;rounded=1;endArrow=blockThin;endFill=1;endSize=7;strokeWidth=1.25;strokeColor=#8A94A6;fontSize=10;fontColor=#52606D;labelBackgroundColor=#FFFFFF;spacing=2;edgeStyle=orthogonalEdgeStyle;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" value="Scrapes host metrics&lt;br&gt;&lt;font color=&#39;#9AA5B1&#39;&gt;[HTTP]&lt;/font&gt;">
+                    <mxGeometry relative="1" x="0.15" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="899" y="535"/>
+                            <mxPoint x="1142" y="535"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
             </root>
         </mxGraphModel>

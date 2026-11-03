@@ -1,6 +1,7 @@
 package dev.pulsiris.checks.application;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,16 +41,19 @@ public class CheckRunner {
 
 	private final CheckRecorder recorder;
 
+	private final CheckMetrics metrics;
+
 	private final Clock clock;
 
 	private final int maxConcurrentProbes;
 
 	CheckRunner(TargetLookup targets, HealthStateRepository states, Prober prober, CheckRecorder recorder,
-			Clock clock, ChecksProperties properties) {
+			CheckMetrics metrics, Clock clock, ChecksProperties properties) {
 		this.targets = targets;
 		this.states = states;
 		this.prober = prober;
 		this.recorder = recorder;
+		this.metrics = metrics;
 		this.clock = clock;
 		this.maxConcurrentProbes = properties.maxConcurrentProbes();
 	}
@@ -82,10 +86,18 @@ public class CheckRunner {
 	private List<TargetSnapshot> findDue(Instant now) {
 		List<TargetSnapshot> enabled = targets.findEnabled();
 		Map<UUID, HealthState> known = states.findByTargetIds(enabled.stream().map(TargetSnapshot::id).toList());
-		return enabled.stream()
-			.filter(target -> known.getOrDefault(target.id(), HealthState.unknown(target.id()))
-				.isDue(target.interval(), now))
-			.toList();
+		List<TargetSnapshot> due = new ArrayList<>();
+		for (TargetSnapshot target : enabled) {
+			HealthState state = known.getOrDefault(target.id(), HealthState.unknown(target.id()));
+			if (state.isDue(target.interval(), now)) {
+				due.add(target);
+				// A target that was never checked has no due time to be late against.
+				if (state.lastCheckedAt() != null) {
+					metrics.recordDelay(Duration.between(state.lastCheckedAt().plus(target.interval()), now));
+				}
+			}
+		}
+		return due;
 	}
 
 	private CheckResult probe(TargetSnapshot target, Semaphore permits) throws InterruptedException {
@@ -102,7 +114,9 @@ public class CheckRunner {
 	// One target's problem must not stop the others from being recorded.
 	private void record(TargetSnapshot target, Future<CheckResult> probe) {
 		try {
-			recorder.record(target, probe.get());
+			CheckResult result = probe.get();
+			metrics.recordCheck(result);
+			recorder.record(target, result);
 		}
 		catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();

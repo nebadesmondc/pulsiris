@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import dev.pulsiris.incidents.domain.Incident;
+import dev.pulsiris.incidents.domain.IncidentStatus;
 import dev.pulsiris.incidents.domain.TimelineEntry;
 
 import org.springframework.data.domain.Page;
@@ -21,6 +22,8 @@ public interface IncidentRepository {
 	Optional<Incident> findActiveByTargetId(UUID targetId);
 
 	boolean existsByTargetIdAndStartedAt(UUID targetId, Instant startedAt);
+
+	long countByStatus(IncidentStatus status);
 
 	/** Oldest entry first. */
 	List<TimelineEntry> findTimeline(UUID incidentId);

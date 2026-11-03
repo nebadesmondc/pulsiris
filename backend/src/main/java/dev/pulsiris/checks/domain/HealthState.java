@@ -36,6 +36,13 @@ public record HealthState(UUID targetId, HealthStatus status, int consecutiveFai
 	}
 
 	/**
+	 * Whether the most recent check succeeded; {@code false} when the target was never checked.
+	 */
+	public boolean lastCheckSucceeded() {
+		return consecutiveSuccesses > 0;
+	}
+
+	/**
 	 * Applies one check result and returns the new state, plus the status change other modules
 	 * should hear about, if any. Results older than the last applied one are ignored.
 	 *

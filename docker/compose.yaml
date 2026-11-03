@@ -47,8 +47,9 @@ services:
         target: DB_PASSWORD
     ports:
       - "127.0.0.1:${APP_PORT:-8080}:8080"
+      - "127.0.0.1:${MANAGEMENT_PORT:-8081}:8081"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health/readiness"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health/readiness"]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -62,9 +63,93 @@ services:
     logging: *logging
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --storage.tsdb.retention.size=1GB
+    volumes:
+      - ../monitoring/prometheus:/etc/prometheus:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9090}:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9090/-/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    memswap_limit: 512M
+    logging: *logging
+    restart: unless-stopped
+
+  node-exporter:
+    image: prom/node-exporter:v1.12.1
+    hostname: ${NODE_NAME:-local}
+    command:
+      - --path.rootfs=/host
+      - --path.udev.data=/host/run/udev/data
+      # The defaults, plus in-memory file systems and the mounts Docker Desktop adds.
+      - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|fuse\..*|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|erofs|sysfs|tracefs|tmpfs|9p|rootfs)$
+      - --collector.filesystem.mount-points-exclude=^/(dev|proc|run/credentials/.+|run/desktop|sys|parent-distro|mnt/host|mnt/docker-desktop-disk|usr/lib/wsl|usr/lib/modules|var/lib/docker/.+|var/lib/containers/storage/.+)($|/)
+    # Sees the host's processes and file systems, read-only. Network figures stay those of the container.
+    pid: host
+    volumes:
+      - /:/host:ro
+    ports:
+      - "127.0.0.1:${NODE_EXPORTER_PORT:-9100}:9100"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    memswap_limit: 64M
+    logging: *logging
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.5
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      # The Go garbage collector works harder near this, keeping Grafana under its memory limit.
+      GOMEMLIMIT: 400MiB
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - ../monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ../monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    memswap_limit: 512M
+    logging: *logging
+    restart: unless-stopped
+
 secrets:
   db_password:
     file: ./secrets/db_password
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password
 
 volumes:
   postgres-data:
+  prometheus-data:
+  grafana-data:

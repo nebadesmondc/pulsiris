@@ -8,6 +8,7 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 - **Health checks:** a target goes DOWN after 3 consecutive failures and recovers after 2 successes. Results from before a monitoring gap never count towards an alert.
 - **Incidents:** opened and resolved automatically from health changes, with acknowledge, manual resolve, notes and a timeline.
 - **Retention:** raw check results for 30 days, daily summaries for 13 months.
+- **Self-monitoring:** Prometheus metrics, Grafana dashboards and alert rules for Pulsiris and the machine it runs on.
 - **REST API** documented with OpenAPI.
 
 ## Tech stack
@@ -18,6 +19,7 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 | Data | PostgreSQL 18, Flyway |
 | Tests | JUnit 5, Testcontainers, WireMock, ArchUnit |
 | Runtime | Docker, Docker Compose |
+| Monitoring | Prometheus, Grafana, Node Exporter |
 
 ## Architecture
 
@@ -25,13 +27,22 @@ A modular monolith with three modules: `registry`, `checks` and `incidents`. Eac
 
 ![Container diagram](docs/architecture/images/containers.svg)
 
+## Monitoring
+
+Prometheus scrapes the backend and Node Exporter every 15 s and evaluates the alert rules in `monitoring/prometheus/rules/`. Grafana comes with two provisioned dashboards: Pulsiris, for health, checks, API and JVM, and Node Exporter Full, for the host.
+
+![Pulsiris dashboard](docs/images/grafana-1.png)
+
+![Host dashboard](docs/images/grafana-2.png)
+
 ## Quickstart
 
-Requires Docker. Choose a database password first; it is stored as a file outside git.
+Requires Docker. Choose a database password and a Grafana admin password first; they are stored as files outside git.
 
 ```bash
 mkdir -p docker/secrets
-openssl rand -base64 24 | tr -d '\n' > docker/secrets/db_password
+openssl rand -base64 24 | tr -d '\r\n' > docker/secrets/db_password
+openssl rand -base64 18 | tr -d '\r\n' > docker/secrets/grafana_admin_password
 docker compose -f docker/compose.yaml up -d --wait
 ```
 
@@ -40,13 +51,18 @@ PowerShell:
 ```powershell
 New-Item -ItemType Directory -Force docker/secrets | Out-Null
 Set-Content docker/secrets/db_password -Value 'choose-a-password' -NoNewline -Encoding ascii
+Set-Content docker/secrets/grafana_admin_password -Value 'choose-another-password' -NoNewline -Encoding ascii
 docker compose -f docker/compose.yaml up -d --wait
 ```
 
 | | |
 |---|---|
 | API docs | http://localhost:8080/swagger-ui.html |
-| Health | http://localhost:8080/actuator/health |
+| Health | http://localhost:8081/actuator/health |
+| Metrics | http://localhost:8081/actuator/prometheus |
+| Prometheus | http://localhost:9090 |
+| Grafana | http://localhost:3000 (user `admin`) |
+| Host metrics | http://localhost:9100/metrics |
 
 Register a service to monitor:
 
@@ -71,6 +87,12 @@ docker compose -f docker/compose.yaml up -d --wait postgres   # Postgres on 127.
 cd backend
 ./gradlew bootRun
 ./gradlew test                                                # Testcontainers starts its own Postgres
+```
+
+Alert rules have unit tests, run with `promtool` from the Prometheus image:
+
+```bash
+docker compose -f docker/compose.yaml run --rm --no-deps --entrypoint sh prometheus   -c 'promtool check config /etc/prometheus/prometheus.yml && promtool test rules /etc/prometheus/tests/*.yml'
 ```
 
 `bootRun` connects with the password `pulsiris`. If your secret file holds a different one, set `DB_PASSWORD`.
