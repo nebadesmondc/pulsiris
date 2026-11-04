@@ -32,7 +32,7 @@
 | Check runs | Every 5 s, due targets are probed in parallel on virtual threads, capped at 50 at a time. Each result is recorded in its own transaction. |
 | Probing | JDK `HttpClient`: a timeout per target, redirects followed, TLS certificates verified, response body discarded. Outcomes are `SUCCESS`, `FAILURE`, `TIMEOUT` or `ERROR`. |
 | Container image | Multi-stage Dockerfile: Gradle builds in a JDK stage, the runtime is Temurin 21 JRE on Alpine. The jar is split into layers and runs as a non-root user. |
-| Local stack | One Compose file runs Postgres and the backend; `up postgres` alone serves IDE development. Published ports bind to `127.0.0.1`. |
+| Local stack | `compose.yaml` runs the stack from published images; `compose.build.yaml` builds the backend from source instead. `up postgres` alone serves IDE development. Published ports bind to `127.0.0.1`. |
 | Secrets | Passed as files through Compose secrets, never as environment variables or in git. Spring reads them with `configtree:`. |
 | Container memory | 768 MiB limit without swap. The heap is 60% of the limit, and the JVM exits on `OutOfMemoryError` so the restart policy recovers it. |
 | Health probes | Liveness covers the process only; readiness also requires the database. |
@@ -43,3 +43,7 @@
 | Host metrics | Node Exporter reads the host's CPU, memory, disks and processes through a read-only mount of `/`. Its network figures are the container's own. On Docker Desktop the host is the Docker VM, not the computer. |
 | Dashboards | Grafana's datasource and dashboards are provisioned from `monitoring/grafana/`. Dashboards can't be saved in the UI; changes are exported to their JSON file. |
 | Alert rules | Prometheus alerts on Pulsiris itself and its host, not on monitored targets; their outages are incidents. Rules live in `monitoring/prometheus/rules/` with `promtool` unit tests. Until Alertmanager arrives, firing alerts are shown in Prometheus and Grafana. |
+| CI | GitHub Actions on pull requests and master. master requires the Backend, Config and Image checks. Actions are pinned to commit SHAs. |
+| Releases | Every master commit is tested, started with Postgres and published to GHCR as `sha-<commit>`. A `vX.Y.Z` tag adds the version to that same image; nothing is rebuilt, and a version never moves. |
+| Deploys | `docker/deploy.sh` pulls a version, records it in `docker/.env` and rolls back when the backend is not ready. One container, so a deploy has about 30 s of downtime. |
+| Schema changes | A release keeps the schema usable by the previous one (expand, then contract), so rolling back one version always works. |
