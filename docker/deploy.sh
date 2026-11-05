@@ -40,7 +40,7 @@ start() {
 previous="$(current_version)"
 previous="${previous:-local}"
 
-# Releases come from GHCR;
+# Releases come from GHCR.
 if [[ "$version" != local ]] && ! PULSIRIS_VERSION="$version" "${compose[@]}" pull backend; then
 	echo "Could not pull $version; nothing was changed" >&2
 	exit 3

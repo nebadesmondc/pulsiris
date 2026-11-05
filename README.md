@@ -1,5 +1,7 @@
 # Pulsiris
 
+[![CI](https://github.com/nebadesmondc/pulsiris/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/nebadesmondc/pulsiris/actions/workflows/ci.yml?query=branch%3Amaster)
+
 Pulsiris is an application operations and reliability toolkit. It checks HTTP services on a schedule, tracks their health and keeps a record of every incident. It runs the same locally, on a VPS or in the cloud.
 
 ## Features
