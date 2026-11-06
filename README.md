@@ -1,5 +1,7 @@
 # Pulsiris
 
+[![CI](https://github.com/nebadesmondc/pulsiris/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/nebadesmondc/pulsiris/actions/workflows/ci.yml?query=branch%3Amaster)
+
 Pulsiris is an application operations and reliability toolkit. It checks HTTP services on a schedule, tracks their health and keeps a record of every incident. It runs the same locally, on a VPS or in the cloud.
 
 ## Features
@@ -19,6 +21,7 @@ Pulsiris is an application operations and reliability toolkit. It checks HTTP se
 | Data | PostgreSQL 18, Flyway |
 | Tests | JUnit 5, Testcontainers, WireMock, ArchUnit |
 | Runtime | Docker, Docker Compose |
+| Delivery | GitHub Actions, GitHub Container Registry |
 | Monitoring | Prometheus, Grafana, Node Exporter |
 
 ## Architecture
@@ -78,6 +81,10 @@ docker compose -f docker/compose.yaml down      # removes the containers, keeps 
 docker compose -f docker/compose.yaml down -v   # also deletes the database
 ```
 
+## Deploy a release
+
+Releases are published as `ghcr.io/nebadesmondc/pulsiris-backend:<version>`. `docker/deploy.sh 0.1.0` deploys one and rolls back automatically if it does not become ready; see [Deploy and roll back](docs/operations/deploy.md).
+
 ## Development
 
 Requires Java 21 and Docker.
@@ -106,3 +113,4 @@ Optional overrides go in `docker/.env`; [docker/.env.example](docker/.env.exampl
 - [Architecture](docs/architecture/README.md): diagrams and decisions
 - [ADRs](docs/adr/)
 - [Troubleshooting](docs/operations/troubleshooting.md)
+- [Deploy and roll back](docs/operations/deploy.md)

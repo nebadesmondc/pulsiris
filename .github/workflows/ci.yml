@@ -83,13 +83,17 @@ jobs:
         run: docker push "$IMAGE:${{ steps.version.outputs.tag }}"
 
   config:
-    name: Compose and alert rules
+    name: Config
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - run: docker compose -f docker/compose.yaml -f docker/compose.build.yaml config --quiet
+      - name: Compose files
+        run: docker compose -f docker/compose.yaml -f docker/compose.build.yaml config --quiet
       # Same Prometheus image as the stack, so the rules are tested by the version that runs them.
-      - run: >-
+      - name: Prometheus config and alert rules
+        run: >-
           docker compose -f docker/compose.yaml run --rm --no-deps --entrypoint sh prometheus
           -c 'promtool check config /etc/prometheus/prometheus.yml && promtool test rules /etc/prometheus/tests/*.yml'
+      - name: Deploy script
+        run: shellcheck docker/deploy.sh
