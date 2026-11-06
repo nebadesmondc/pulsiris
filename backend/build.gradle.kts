@@ -32,7 +32,7 @@ dependencies {
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
 	implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0")
-	implementation("com.fasterxml.uuid:java-uuid-generator:5.1.0")
+	implementation("com.fasterxml.uuid:java-uuid-generator:5.2.0")
 	implementation("net.javacrumbs.shedlock:shedlock-spring:$shedlockVersion")
 	implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
 	implementation("org.mapstruct:mapstruct:$mapstructVersion")
