@@ -62,7 +62,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v3.15.1
+    image: prom/prometheus:v3.16.0
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -110,7 +110,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:13.2.5
+    image: grafana/grafana:13.3.0
     environment:
       GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana_admin_password
       GF_ANALYTICS_REPORTING_ENABLED: "false"
